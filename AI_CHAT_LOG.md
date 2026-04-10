@@ -155,7 +155,7 @@ Add a throttler for rate limit.
 
 ### Prompt Given to the AI 6
 
-› [$vercel-react-best-practices](C:\Users\mhung\.agents\skills\vercel-react-best-practices\SKILL.md) [$frontend-skill](C:\Users\mhung\.codex\skills\frontend-skill\SKILL.md) make me a page look like this(image). Which have lefftside nav (show which active and not reloading when moving around). I use app router and main page at [page.tsx](frontend/app/(app\)/page.tsx) . Those premium feature in the app, for example just reduce it from update -> register now. And declare those color using at [globals.css](frontend/app/globals.css) .
+› [$vercel-react-best-practices](C:\Users\mhung.agents\skills\vercel-react-best-practices\SKILL.md) [$frontend-skill](C:\Users\mhung.codex\skills\frontend-skill\SKILL.md) make me a page look like this(image). Which have lefftside nav (show which active and not reloading when moving around). I use app router and main page at [page.tsx](frontend/app/(app\)/page.tsx) . Those premium feature in the app, for example just reduce it from update -> register now. And declare those color using at [globals.css](frontend/app/globals.css) .
 
 ### What the AI Generated
 
@@ -172,3 +172,7 @@ Add a throttler for rate limit.
 
 - The left side not stick. it have length = main page. So when scroll the page it scroll too.
   => change the h to h-screen and sticky top-0;
+
+### Prompt Given to the AI 7
+
+code for me a actually shortenURL feature. Currently its just simple : the shorten link when click is actually inside the app not real url that be shorten. So when user click they are likely navigate inside the web. I want it actually redirect.
