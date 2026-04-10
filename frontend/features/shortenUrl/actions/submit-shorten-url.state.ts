@@ -4,5 +4,4 @@ export const initialShortenUrlFormState: ShortenUrlFormState = {
   status: "idle",
   message: null,
   data: null,
-  fieldErrors: {},
 };

@@ -8,7 +8,4 @@ export interface ShortenUrlFormState {
   status: "idle" | "success" | "error";
   message: string | null;
   data: ShortenedUrlResponse | null;
-  fieldErrors?: {
-    url?: string[];
-  };
 }

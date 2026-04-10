@@ -53,7 +53,7 @@ This document records significant AI-assisted work sessions and explains exactly
 ### What Was Modified and What Specifically Changed
 
 - Frontend show the Non existence error from backend. It suppose just show a text "Invalid Url" at zod schema not backend error.
-- the interface should not receive error at the backend
+- the interface should not receive error at the backend => remove the field error for url and it use
 
 ### Prompt Given to the AI 3
 
@@ -120,6 +120,55 @@ The main change is the analytics model:
   queries like “which user got the most clicks on their links” do not require scanning raw
   clicks.
 
+### What Was Accepted As-Is and Why
+
+- New models: because when split to multiple time stats. When user need to see it, they dont have to scanning all the click information for record.
+
 ### What Was Modified and What Specifically Changed
 
 Nothing
+
+### Prompt Given to the AI 5
+
+› make a auth feature for me, JWT cookie http only.The refresh token should save in DB as well
+(hashed).Include login, register,logout. Take this at the principle $solid , but not as the
+structure, keep structure as Nest traditional.
+
+### What the AI Generated
+
+password hashing service, and a shared Prisma service. The main flow is in /E:/DUAN/
+RutGonLink/backend/src/auth/auth.controller.ts:9 and /E:/DUAN/RutGonLink/backend/src/auth/
+auth.service.ts:23: POST /auth/register, POST /auth/login, and POST /auth/logout now issue
+HttpOnly cookies, hash passwords, and store the hashed refresh token in the user record. JWT
+signing/verification is handled in /E:/DUAN/RutGonLink/backend/src/auth/auth-
+token.service.ts:10, and Prisma is wired through /E:/DUAN/RutGonLink/backend/src/prisma/
+prisma.service.ts:1.
+
+### What Was Accepted As-Is and Why
+
+The based code look solid. It have login/register feature and when user loggin/register it do create a rt,at for them. and when they are logout, remove rt,at. Do hash password before saving
+
+### What Was Modified and What Specifically Changed
+
+Add guard for not letting logged user login/register again and guard for not letting non logged user logout.
+Add a throttler for rate limit.
+
+### Prompt Given to the AI 6
+
+› [$vercel-react-best-practices](C:\Users\mhung\.agents\skills\vercel-react-best-practices\SKILL.md) [$frontend-skill](C:\Users\mhung\.codex\skills\frontend-skill\SKILL.md) make me a page look like this(image). Which have lefftside nav (show which active and not reloading when moving around). I use app router and main page at [page.tsx](frontend/app/(app\)/page.tsx) . Those premium feature in the app, for example just reduce it from update -> register now. And declare those color using at [globals.css](frontend/app/globals.css) .
+
+### What the AI Generated
+
+- write a lot component for app-shell which is the left side nav.
+- adding element at global.css
+- create each page for nav route.
+- a simple header with search bar
+
+### What Was Accepted As-Is and Why
+
+- currently accept the css changing and small component. It looks fine with no error
+
+### What Was Modified and What Specifically Changed
+
+- The left side not stick. it have length = main page. So when scroll the page it scroll too.
+  => change the h to h-screen and sticky top-0;
