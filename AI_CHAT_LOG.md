@@ -54,3 +54,72 @@ This document records significant AI-assisted work sessions and explains exactly
 
 - Frontend show the Non existence error from backend. It suppose just show a text "Invalid Url" at zod schema not backend error.
 - the interface should not receive error at the backend
+
+### Prompt Given to the AI 3
+
+Design a PostgreSQL database schema for a URL shortener app with these core requirements:
+
+USER TIERS:
+
+- Anonymous users: can create short links, NO analytics tracking
+- Logged-in users: can create short links WITH full analytics
+
+DATA TO TRACK (only for logged-in users):
+
+- Click source: referrer URL, referrer domain, UTM parameters
+- Timing: timestamp of each click
+- Location: country, city (from IP)
+- Device info: device type (mobile/desktop/tablet), browser, OS
+- User attribution: which user/organization created the link
+
+REQUIREMENTS:
+
+- shortened_links.user_id should be NULLABLE (for anonymous links)
+- Only track analytics if user_id IS NOT NULL
+- Include proper indexes for common queries
+- Use BIGINTS for primary keys to store snowflakeId
+- Include created_at, updated_at timestamps
+
+And add some seeds data for testing/validation if schema actually work
+
+### What the AI Generated
+
+- Models: Organization, User , ShortenedLink,ClickEvent,LinkStatsDaily.
+
+### What Was Accepted As-Is and Why
+
+- User models: User, ShortenedLink ,ClickEvent,LinkStatsDaily
+- Have enough context to store user info, the link info and info of individual click on the link.
+
+### What Was Modified and What Specifically Changed
+
+- Organization might be over complicated for now.
+- Lack of Stats tracking.
+
+### Prompt Given to the AI 4
+
+› improve the schema tables. I see it lack of stats tracking (currently just daily stats). I
+want to analitics in the long time. Like list of person who got most link clicked. The
+sshorted link (or the actually original_url ) , record for hours per day, for days per week,
+for week per month (maximum is 3 months). You can change the old schema.primsa and split too
+big table if needed.
+
+### What the AI Generated
+
+Updated the Prisma schema in backend/prisma/schema.prisma and the seed set in backend/prisma/
+seed.sql.
+
+The main change is the analytics model:
+
+- Replaced the old “daily-only” idea with link_stats_hourly, link_stats_daily, and
+  link_stats_weekly so you can query:
+  - hours within a day
+  - days within a week
+  - weeks within a month / last 3 months
+- Added creator_stats_daily, creator_stats_weekly, and creator_stats_monthly so leaderboard
+  queries like “which user got the most clicks on their links” do not require scanning raw
+  clicks.
+
+### What Was Modified and What Specifically Changed
+
+Nothing

@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserTier {
+  logged_in
+  admin
+}
+
+enum LinkCreatorType {
+  anonymous
+  user
+  organization
+}
+
+enum DeviceType {
+  mobile
+  desktop
+  tablet
+  bot
+  other
+}
+
+model Organization {
+  id                  BigInt                @id
+  name                String                @db.VarChar(200)
+  slug                String                @unique @db.VarChar(100)
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamp(6)
+  users               User[]
+  shortenedLinks      ShortenedLink[]
+  clickEvents         ClickEvent[]
+  linkStatsHourly     LinkStatsHourly[]
+  linkStatsDaily      LinkStatsDaily[]
+  linkStatsWeekly     LinkStatsWeekly[]
+  creatorStatsDaily   CreatorStatsDaily[]
+  creatorStatsWeekly  CreatorStatsWeekly[]
+  creatorStatsMonthly CreatorStatsMonthly[]
+
+  @@map("organizations")
+}
+
+model User {
+  id                  BigInt                @id
+  organizationId      BigInt?               @map("organization_id")
+  email               String                @unique @db.VarChar(320)
+  fullName            String                @map("full_name") @db.VarChar(200)
+  passwordHash        String                @map("password_hash") @db.VarChar(255)
+  tier                UserTier              @default(logged_in)
+  isActive            Boolean               @default(true) @map("is_active")
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization        Organization?         @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  shortenedLinks      ShortenedLink[]
+  clickEvents         ClickEvent[]
+  linkStatsHourly     LinkStatsHourly[]
+  linkStatsDaily      LinkStatsDaily[]
+  linkStatsWeekly     LinkStatsWeekly[]
+  creatorStatsDaily   CreatorStatsDaily[]
+  creatorStatsWeekly  CreatorStatsWeekly[]
+  creatorStatsMonthly CreatorStatsMonthly[]
+
+  @@index([organizationId], map: "idx_users_organization_id")
+  @@index([createdAt], map: "idx_users_created_at")
+  @@map("users")
+}
+
+model ShortenedLink {
+  id                    BigInt                @id
+  organizationId        BigInt?               @map("organization_id")
+  userId                BigInt?               @map("user_id")
+  shortCode             String                @unique(map: "uq_shortened_links_short_code") @map("short_code") @db.VarChar(50)
+  destinationUrl        String                @map("destination_url")
+  title                 String?               @db.VarChar(255)
+  createdByType         LinkCreatorType       @default(anonymous) @map("created_by_type")
+  isActive              Boolean               @default(true) @map("is_active")
+  expiresAt             DateTime?             @map("expires_at") @db.Timestamp(6)
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime              @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization          Organization?         @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user                  User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clickEvents           ClickEvent[]
+  hourlyStats           LinkStatsHourly[]
+  dailyStats            LinkStatsDaily[]
+  weeklyStats           LinkStatsWeekly[]
+  creatorStatsDailies   CreatorStatsDaily[]   @relation("CreatorDailyTopLink")
+  creatorStatsWeeklies  CreatorStatsWeekly[]  @relation("CreatorWeeklyTopLink")
+  creatorStatsMonthlies CreatorStatsMonthly[] @relation("CreatorMonthlyTopLink")
+
+  @@unique([id, userId], map: "uq_shortened_links_id_user_id")
+  @@index([userId], map: "idx_shortened_links_user_id")
+  @@index([organizationId], map: "idx_shortened_links_organization_id")
+  @@index([createdAt], map: "idx_shortened_links_created_at")
+  @@index([userId, createdAt], map: "idx_shortened_links_user_created_at")
+  @@index([organizationId, createdAt], map: "idx_shortened_links_org_created_at")
+  @@map("shortened_links")
+}
+
+model ClickEvent {
+  id             BigInt        @id
+  linkId         BigInt        @map("link_id")
+  userId         BigInt        @map("user_id")
+  organizationId BigInt?       @map("organization_id")
+  clickedAt      DateTime      @default(now()) @map("clicked_at") @db.Timestamp(6)
+  referrerUrl    String?       @map("referrer_url")
+  referrerDomain String?       @map("referrer_domain") @db.VarChar(255)
+  utmSource      String?       @map("utm_source") @db.VarChar(100)
+  utmMedium      String?       @map("utm_medium") @db.VarChar(100)
+  utmCampaign    String?       @map("utm_campaign") @db.VarChar(150)
+  utmTerm        String?       @map("utm_term") @db.VarChar(150)
+  utmContent     String?       @map("utm_content") @db.VarChar(150)
+  country        String?       @db.VarChar(100)
+  city           String?       @db.VarChar(100)
+  deviceType     DeviceType?   @map("device_type")
+  browser        String?       @db.VarChar(100)
+  os             String?       @db.VarChar(100)
+  ipAddress      String?       @map("ip_address") @db.VarChar(45)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortenedLink  ShortenedLink @relation(fields: [linkId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@index([linkId], map: "idx_click_events_link_id")
+  @@index([userId], map: "idx_click_events_user_id")
+  @@index([organizationId], map: "idx_click_events_organization_id")
+  @@index([clickedAt], map: "idx_click_events_clicked_at")
+  @@index([linkId, clickedAt], map: "idx_click_events_link_clicked_at")
+  @@index([userId, clickedAt], map: "idx_click_events_user_clicked_at")
+  @@index([organizationId, clickedAt], map: "idx_click_events_org_clicked_at")
+  @@index([referrerDomain], map: "idx_click_events_referrer_domain")
+  @@index([country, city], map: "idx_click_events_country_city")
+  @@index([deviceType], map: "idx_click_events_device_type")
+  @@map("click_events")
+}
+
+model LinkStatsHourly {
+  id             BigInt        @id
+  linkId         BigInt        @map("link_id")
+  userId         BigInt        @map("user_id")
+  organizationId BigInt?       @map("organization_id")
+  bucketStart    DateTime      @map("bucket_start") @db.Timestamp(6)
+  totalClicks    BigInt        @default(0) @map("total_clicks")
+  mobileClicks   BigInt        @default(0) @map("mobile_clicks")
+  desktopClicks  BigInt        @default(0) @map("desktop_clicks")
+  tabletClicks   BigInt        @default(0) @map("tablet_clicks")
+  botClicks      BigInt        @default(0) @map("bot_clicks")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortenedLink  ShortenedLink @relation(fields: [linkId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@unique([linkId, bucketStart], map: "uq_link_stats_hourly_link_bucket")
+  @@index([userId, bucketStart], map: "idx_link_stats_hourly_user_bucket")
+  @@index([organizationId, bucketStart], map: "idx_link_stats_hourly_org_bucket")
+  @@index([bucketStart], map: "idx_link_stats_hourly_bucket")
+  @@map("link_stats_hourly")
+}
+
+model LinkStatsDaily {
+  id                    BigInt        @id
+  linkId                BigInt        @map("link_id")
+  userId                BigInt        @map("user_id")
+  organizationId        BigInt?       @map("organization_id")
+  statsDate             DateTime      @map("stats_date") @db.Date
+  totalClicks           BigInt        @default(0) @map("total_clicks")
+  uniqueReferrerDomains BigInt        @default(0) @map("unique_referrer_domains")
+  uniqueCountries       BigInt        @default(0) @map("unique_countries")
+  uniqueCities          BigInt        @default(0) @map("unique_cities")
+  mobileClicks          BigInt        @default(0) @map("mobile_clicks")
+  desktopClicks         BigInt        @default(0) @map("desktop_clicks")
+  tabletClicks          BigInt        @default(0) @map("tablet_clicks")
+  botClicks             BigInt        @default(0) @map("bot_clicks")
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortenedLink         ShortenedLink @relation(fields: [linkId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@unique([linkId, statsDate], map: "uq_link_stats_daily_link_date")
+  @@index([userId, statsDate], map: "idx_link_stats_daily_user_date")
+  @@index([organizationId, statsDate], map: "idx_link_stats_daily_org_date")
+  @@index([statsDate], map: "idx_link_stats_daily_stats_date")
+  @@map("link_stats_daily")
+}
+
+model LinkStatsWeekly {
+  id                    BigInt        @id
+  linkId                BigInt        @map("link_id")
+  userId                BigInt        @map("user_id")
+  organizationId        BigInt?       @map("organization_id")
+  weekStartDate         DateTime      @map("week_start_date") @db.Date
+  totalClicks           BigInt        @default(0) @map("total_clicks")
+  uniqueReferrerDomains BigInt        @default(0) @map("unique_referrer_domains")
+  uniqueCountries       BigInt        @default(0) @map("unique_countries")
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shortenedLink         ShortenedLink @relation(fields: [linkId, userId], references: [id, userId], onDelete: Cascade)
+
+  @@unique([linkId, weekStartDate], map: "uq_link_stats_weekly_link_week")
+  @@index([userId, weekStartDate], map: "idx_link_stats_weekly_user_week")
+  @@index([organizationId, weekStartDate], map: "idx_link_stats_weekly_org_week")
+  @@index([weekStartDate], map: "idx_link_stats_weekly_week")
+  @@map("link_stats_weekly")
+}
+
+model CreatorStatsDaily {
+  id                  BigInt         @id
+  userId              BigInt         @map("user_id")
+  organizationId      BigInt?        @map("organization_id")
+  statsDate           DateTime       @map("stats_date") @db.Date
+  linksCreatedCount   BigInt         @default(0) @map("links_created_count")
+  activeLinksCount    BigInt         @default(0) @map("active_links_count")
+  totalClicksReceived BigInt         @default(0) @map("total_clicks_received")
+  topLinkId           BigInt?        @map("top_link_id")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topLink             ShortenedLink? @relation("CreatorDailyTopLink", fields: [topLinkId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, statsDate], map: "uq_creator_stats_daily_user_date")
+  @@index([organizationId, statsDate], map: "idx_creator_stats_daily_org_date")
+  @@index([statsDate, totalClicksReceived], map: "idx_creator_stats_daily_leaderboard")
+  @@map("creator_stats_daily")
+}
+
+model CreatorStatsWeekly {
+  id                  BigInt         @id
+  userId              BigInt         @map("user_id")
+  organizationId      BigInt?        @map("organization_id")
+  weekStartDate       DateTime       @map("week_start_date") @db.Date
+  linksCreatedCount   BigInt         @default(0) @map("links_created_count")
+  activeLinksCount    BigInt         @default(0) @map("active_links_count")
+  totalClicksReceived BigInt         @default(0) @map("total_clicks_received")
+  topLinkId           BigInt?        @map("top_link_id")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topLink             ShortenedLink? @relation("CreatorWeeklyTopLink", fields: [topLinkId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, weekStartDate], map: "uq_creator_stats_weekly_user_week")
+  @@index([organizationId, weekStartDate], map: "idx_creator_stats_weekly_org_week")
+  @@index([weekStartDate, totalClicksReceived], map: "idx_creator_stats_weekly_leaderboard")
+  @@map("creator_stats_weekly")
+}
+
+model CreatorStatsMonthly {
+  id                  BigInt         @id
+  userId              BigInt         @map("user_id")
+  organizationId      BigInt?        @map("organization_id")
+  monthStartDate      DateTime       @map("month_start_date") @db.Date
+  linksCreatedCount   BigInt         @default(0) @map("links_created_count")
+  activeLinksCount    BigInt         @default(0) @map("active_links_count")
+  totalClicksReceived BigInt         @default(0) @map("total_clicks_received")
+  topLinkId           BigInt?        @map("top_link_id")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamp(6)
+  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topLink             ShortenedLink? @relation("CreatorMonthlyTopLink", fields: [topLinkId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, monthStartDate], map: "uq_creator_stats_monthly_user_month")
+  @@index([organizationId, monthStartDate], map: "idx_creator_stats_monthly_org_month")
+  @@index([monthStartDate, totalClicksReceived], map: "idx_creator_stats_monthly_leaderboard")
+  @@map("creator_stats_monthly")
+}
