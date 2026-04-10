@@ -19,7 +19,6 @@ export async function submitShortenUrl(
       status: "error",
       message: "Enter a valid URL before submitting.",
       data: null,
-      fieldErrors: payload.error.flatten().fieldErrors,
     };
   }
 
@@ -40,7 +39,6 @@ export async function submitShortenUrl(
         status: "error",
         message: getErrorMessage(json),
         data: null,
-        fieldErrors: {},
       };
     }
 
@@ -51,7 +49,6 @@ export async function submitShortenUrl(
         status: "error",
         message: "The backend response was not in the expected format.",
         data: null,
-        fieldErrors: {},
       };
     }
 
@@ -59,7 +56,6 @@ export async function submitShortenUrl(
       status: "success",
       message: "Short link created successfully.",
       data: result.data,
-      fieldErrors: {},
     };
   } catch {
     return {
@@ -67,7 +63,6 @@ export async function submitShortenUrl(
       message:
         "Unable to reach the shorten URL API. Set SHORTEN_URL_API_BASE_URL if your backend runs on a different port.",
       data: null,
-      fieldErrors: {},
     };
   }
 }
