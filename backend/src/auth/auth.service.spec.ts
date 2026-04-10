@@ -1,5 +1,5 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { UserTier } from '../../generated/prisma/enums';
+import { UserTier } from '@prisma/client';
 import { AuthSessionService } from './auth-session.service';
 import { AuthService } from './auth.service';
 import { AuthTokenService } from './auth-token.service';

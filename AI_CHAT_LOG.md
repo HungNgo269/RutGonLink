@@ -53,7 +53,7 @@ This document records significant AI-assisted work sessions and explains exactly
 ### What Was Modified and What Specifically Changed
 
 - Frontend show the Non existence error from backend. It suppose just show a text "Invalid Url" at zod schema not backend error.
-- the interface should not receive error at the backend
+- the interface should not receive error at the backend => remove the field error for url and it use
 
 ### Prompt Given to the AI 3
 
@@ -150,5 +150,25 @@ The based code look solid. It have login/register feature and when user loggin/r
 
 ### What Was Modified and What Specifically Changed
 
-Lack guard for not letting logged user login/register again
-Lack guard for not letting non logged user logout.
+Add guard for not letting logged user login/register again and guard for not letting non logged user logout.
+Add a throttler for rate limit.
+
+### Prompt Given to the AI 6
+
+› [$vercel-react-best-practices](C:\Users\mhung\.agents\skills\vercel-react-best-practices\SKILL.md) [$frontend-skill](C:\Users\mhung\.codex\skills\frontend-skill\SKILL.md) make me a page look like this(image). Which have lefftside nav (show which active and not reloading when moving around). I use app router and main page at [page.tsx](frontend/app/(app\)/page.tsx) . Those premium feature in the app, for example just reduce it from update -> register now. And declare those color using at [globals.css](frontend/app/globals.css) .
+
+### What the AI Generated
+
+- write a lot component for app-shell which is the left side nav.
+- adding element at global.css
+- create each page for nav route.
+- a simple header with search bar
+
+### What Was Accepted As-Is and Why
+
+- currently accept the css changing and small component. It looks fine with no error
+
+### What Was Modified and What Specifically Changed
+
+- The left side not stick. it have length = main page. So when scroll the page it scroll too.
+  => change the h to h-screen and sticky top-0;

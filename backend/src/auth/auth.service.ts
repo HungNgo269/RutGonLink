@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserTier } from '../../generated/prisma/enums';
+import { UserTier } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthSessionService } from './auth-session.service';
 import { AuthTokenService } from './auth-token.service';
