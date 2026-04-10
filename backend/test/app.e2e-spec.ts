@@ -4,6 +4,10 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
+jest.mock('../src/prisma/prisma.service', () => ({
+  PrismaService: class PrismaService {},
+}));
+
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 
