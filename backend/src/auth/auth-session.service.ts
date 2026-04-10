@@ -18,17 +18,36 @@ export class AuthSessionService {
   ) {}
 
   async ensureGuest(cookieHeader: string | undefined): Promise<void> {
-    if (await this.hasActiveSession(cookieHeader)) {
+    if ((await this.getAuthenticatedUserId(cookieHeader)) !== null) {
       throw new ForbiddenException('You are already authenticated.');
     }
   }
 
   async ensureAuthenticated(cookieHeader: string | undefined): Promise<void> {
-    if (await this.hasActiveSession(cookieHeader)) {
+    if ((await this.getAuthenticatedUserId(cookieHeader)) !== null) {
       return;
     }
 
     throw new UnauthorizedException('Authentication is required.');
+  }
+
+  async getAuthenticatedUserId(
+    cookieHeader: string | undefined,
+  ): Promise<bigint | null> {
+    const accessToken = this.authCookieService.readAccessToken(cookieHeader);
+
+    if (accessToken) {
+      try {
+        const payload = this.authTokenService.verifyAccessToken(accessToken);
+        return BigInt(payload.sub);
+      } catch {
+        // Fall through to refresh token validation.
+      }
+    }
+
+    const session = await this.validateStoredRefreshToken(cookieHeader);
+
+    return session?.userId ?? null;
   }
 
   async validateStoredRefreshToken(
@@ -58,23 +77,5 @@ export class AuthSessionService {
     } catch {
       return null;
     }
-  }
-
-  private async hasActiveSession(
-    cookieHeader: string | undefined,
-  ): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const accessToken = this.authCookieService.readAccessToken(cookieHeader);
-
-    if (accessToken) {
-      try {
-        this.authTokenService.verifyAccessToken(accessToken);
-        return true;
-      } catch {
-        // Fall through to refresh token validation.
-      }
-    }
-
-    return (await this.validateStoredRefreshToken(cookieHeader)) !== null;
   }
 }

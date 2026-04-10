@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AuthSessionService } from '../auth/auth-session.service';
+import { TrackingService } from '../tracking/tracking.service';
 import { ShortenUrlController } from './shorten-url.controller';
 import { ShortenUrlService } from './shorten-url.service';
 
@@ -6,15 +8,31 @@ describe('ShortenUrlController', () => {
   let controller: ShortenUrlController;
   let service: {
     shorten: jest.MockedFunction<ShortenUrlService['shorten']>;
-    getDestinationUrl: jest.MockedFunction<
-      ShortenUrlService['getDestinationUrl']
+    getRedirectTarget: jest.MockedFunction<
+      ShortenUrlService['getRedirectTarget']
+    >;
+  };
+  let authSessionService: {
+    getAuthenticatedUserId: jest.MockedFunction<
+      AuthSessionService['getAuthenticatedUserId']
+    >;
+  };
+  let trackingService: {
+    trackRedirectClick: jest.MockedFunction<
+      TrackingService['trackRedirectClick']
     >;
   };
 
   beforeEach(async () => {
     service = {
       shorten: jest.fn(),
-      getDestinationUrl: jest.fn(),
+      getRedirectTarget: jest.fn(),
+    };
+    authSessionService = {
+      getAuthenticatedUserId: jest.fn(),
+    };
+    trackingService = {
+      trackRedirectClick: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -23,6 +41,14 @@ describe('ShortenUrlController', () => {
         {
           provide: ShortenUrlService,
           useValue: service,
+        },
+        {
+          provide: AuthSessionService,
+          useValue: authSessionService,
+        },
+        {
+          provide: TrackingService,
+          useValue: trackingService,
         },
       ],
     }).compile();
@@ -36,28 +62,58 @@ describe('ShortenUrlController', () => {
       shortCode: 'abc1234',
       shortenedUrl: 'https://sho.rt/abc1234',
     });
+    authSessionService.getAuthenticatedUserId.mockResolvedValue(BigInt(7));
 
     const result = await controller.create(
       { url: 'https://example.com' },
       'https://sho.rt',
+      {
+        headers: { cookie: 'refresh_token=value' },
+      } as never,
     );
 
     expect(service.shorten).toHaveBeenCalledWith(
       { url: 'https://example.com' },
       'https://sho.rt',
+      BigInt(7),
     );
     expect(result.shortCode).toBe('abc1234');
   });
 
   it('redirects with the resolved destination url', async () => {
-    service.getDestinationUrl.mockResolvedValue('https://example.com');
+    service.getRedirectTarget.mockResolvedValue({
+      id: BigInt(11),
+      userId: BigInt(7),
+      organizationId: null,
+      destinationUrl: 'https://example.com',
+    });
     const response = {
       redirect: jest.fn(),
     };
 
-    await controller.redirect('abc1234', response as never);
+    await controller.redirect(
+      'abc1234',
+      {
+        get: jest.fn().mockReturnValue('https://referrer.example/path'),
+        ip: '127.0.0.1',
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/123.0',
+        },
+      } as never,
+      response as never,
+    );
 
-    expect(service.getDestinationUrl).toHaveBeenCalledWith('abc1234');
+    expect(service.getRedirectTarget).toHaveBeenCalledWith('abc1234');
+    expect(trackingService.trackRedirectClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: BigInt(11),
+      }),
+      expect.objectContaining({
+        referrerUrl: 'https://referrer.example/path',
+        ipAddress: '127.0.0.1',
+      }),
+    );
     expect(response.redirect).toHaveBeenCalledWith(302, 'https://example.com');
   });
 });

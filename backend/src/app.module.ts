@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ShortenUrlModule } from './shortenUrl/shorten-url.module';
+import { TrackingModule } from './tracking/tracking.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ShortenUrlModule } from './shortenUrl/shorten-url.module';
     PrismaModule,
     AuthModule,
     ShortenUrlModule,
+    TrackingModule,
   ],
   controllers: [AppController],
   providers: [

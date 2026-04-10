@@ -84,6 +84,20 @@ describe('AuthSessionService', () => {
     ).resolves.toBeUndefined();
   });
 
+  it('when access token is valid, returns the authenticated user id', async () => {
+    authCookieService.readAccessToken.mockReturnValue('access-token');
+    authTokenService.verifyAccessToken.mockReturnValue({
+      sub: '42',
+      email: 'user@example.com',
+      tier: 'logged_in',
+      type: 'access',
+    });
+
+    await expect(
+      service.getAuthenticatedUserId('access_token=access-token'),
+    ).resolves.toBe(BigInt(42));
+  });
+
   it('when no valid session exists, rejects authenticated-only access', async () => {
     authCookieService.readAccessToken.mockReturnValue(null);
     authCookieService.readRefreshToken.mockReturnValue(null);
@@ -91,5 +105,12 @@ describe('AuthSessionService', () => {
     await expect(service.ensureAuthenticated(undefined)).rejects.toThrow(
       UnauthorizedException,
     );
+  });
+
+  it('when no valid session exists, returns null user id', async () => {
+    authCookieService.readAccessToken.mockReturnValue(null);
+    authCookieService.readRefreshToken.mockReturnValue(null);
+
+    await expect(service.getAuthenticatedUserId(undefined)).resolves.toBeNull();
   });
 });

@@ -136,17 +136,11 @@ structure, keep structure as Nest traditional.
 
 ### What the AI Generated
 
-password hashing service, and a shared Prisma service. The main flow is in /E:/DUAN/
-RutGonLink/backend/src/auth/auth.controller.ts:9 and /E:/DUAN/RutGonLink/backend/src/auth/
-auth.service.ts:23: POST /auth/register, POST /auth/login, and POST /auth/logout now issue
-HttpOnly cookies, hash passwords, and store the hashed refresh token in the user record. JWT
-signing/verification is handled in /E:/DUAN/RutGonLink/backend/src/auth/auth-
-token.service.ts:10, and Prisma is wired through /E:/DUAN/RutGonLink/backend/src/prisma/
-prisma.service.ts:1.
+AI did generate a auth module with login, register, logout with JWT http cookie partern.
 
 ### What Was Accepted As-Is and Why
 
-The based code look solid. It have login/register feature and when user loggin/register it do create a rt,at for them. and when they are logout, remove rt,at. Do hash password before saving
+It have login/register feature and when user loggin/register it do create a rt,at for them. and when they are logout, remove rt,at. Do hash password before saving.
 
 ### What Was Modified and What Specifically Changed
 
@@ -176,3 +170,28 @@ Add a throttler for rate limit.
 ### Prompt Given to the AI 7
 
 code for me a actually shortenURL feature. Currently its just simple : the shorten link when click is actually inside the app not real url that be shorten. So when user click they are likely navigate inside the web. I want it actually redirect.
+
+### What the AI Generated
+
+- change shorten-url module to wire the shorten link -> actually URL and add record via Prisma with uniqueness checks and active/expiry validation.
+- add unitest
+
+### What Was Modified and What Specifically Changed
+
+- The controller just write 2 class controller which actually should be in the same (it using same service too) -> combine to one class for readable
+
+### Prompt Given to the AI 7
+
+Can you add Tracking into click. If the tracking logic is a bit complicated like ussing third party api. Tell me first before doing anything. THem make sure the code solid, dry,tdd (except for rules of three). Like the same old logic, only logged user can tracking their link.
+
+### What the AI Generated
+
+- write a simple tracking on click logic into shortenurl feature.
+
+### What Was Accepted As-Is and Why
+
+- The base logic seems fine and simple enough to understand, so i gonna keep the logic.In the future it may cause over complex in single feature.
+
+### What Was Modified and What Specifically Changed
+
+- split the tracking into new tracking feature not inside the shorten-url feature.So just import TrackingModule for ShortenUrlModule.

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { LinkCreatorType } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateShortenUrlDto } from './dto/create-shorten-url.dto';
@@ -15,6 +16,7 @@ export class ShortenUrlService {
   async shorten(
     request: CreateShortenUrlDto,
     baseUrl: string,
+    authenticatedUserId: bigint | null = null,
   ): Promise<ShortenedUrlDto> {
     const originalUrl = this.parseUrl(request.url);
     const shortCode = await this.createUniqueShortCode();
@@ -24,6 +26,12 @@ export class ShortenUrlService {
         id: this.createShortenedLinkId(),
         shortCode,
         destinationUrl: originalUrl,
+        ...(authenticatedUserId === null
+          ? {}
+          : {
+              userId: authenticatedUserId,
+              createdByType: LinkCreatorType.user,
+            }),
       },
     });
 
@@ -35,9 +43,23 @@ export class ShortenUrlService {
   }
 
   async getDestinationUrl(shortCode: string): Promise<string> {
+    const shortenedLink = await this.getRedirectTarget(shortCode);
+
+    return shortenedLink.destinationUrl;
+  }
+
+  async getRedirectTarget(shortCode: string): Promise<{
+    id: bigint;
+    userId: bigint | null;
+    organizationId: bigint | null;
+    destinationUrl: string;
+  }> {
     const shortenedLink = await this.prismaService.shortenedLink.findUnique({
       where: { shortCode },
       select: {
+        id: true,
+        organizationId: true,
+        userId: true,
         destinationUrl: true,
         isActive: true,
         expiresAt: true,
@@ -53,7 +75,7 @@ export class ShortenUrlService {
       throw new NotFoundException('Short link not found.');
     }
 
-    return shortenedLink.destinationUrl;
+    return shortenedLink;
   }
 
   private parseUrl(url: string): string {
@@ -89,6 +111,10 @@ export class ShortenUrlService {
   }
 
   private createShortenedLinkId(): bigint {
+    return this.createGeneratedId();
+  }
+
+  private createGeneratedId(): bigint {
     const timestamp = Date.now().toString();
     const randomSuffix = Math.floor(Math.random() * 1000)
       .toString()
