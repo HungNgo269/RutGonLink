@@ -43,16 +43,16 @@ function NavLink({ item }: { item: AppNavItem }) {
   return (
     <Link
       href={item.href}
-      className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold ${
+      className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-ui-sm font-ui-semibold ${
         isActive
-          ? "bg-[var(--sidebar-active)] text-[var(--sidebar-active-foreground)] shadow-[inset_0_0_0_1px_rgba(39,80,216,0.08)]"
-          : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+          ? "bg-sidebar-active text-sidebar-active-foreground shadow-accent-outline"
+          : "text-content-secondary hover:bg-surface-hover hover:text-content-heading"
       }`}
     >
       <Icon className="size-5 shrink-0" />
       <span>{item.label}</span>
       {item.badge ? (
-        <span className="ml-auto rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--accent)]">
+        <span className="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-ui-2xs font-ui-bold text-accent">
           {item.badge}
         </span>
       ) : null}
@@ -72,14 +72,14 @@ function NavSection({ items }: { items: AppNavItem[] }) {
 
 export function SidebarNav() {
   return (
-    <aside className="flex h-screen flex-col border-r border-[var(--border-soft)] bg-[var(--sidebar-surface)]">
+    <aside className="flex h-screen flex-col border-r border-border-soft bg-sidebar-surface">
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="flex size-11 items-center justify-center rounded-2xl border border-orange-200 bg-orange-50 text-xl font-bold text-orange-500">
+        <div className="flex size-11 items-center justify-center rounded-2xl border border-brand-mark-border bg-brand-mark-surface text-ui-xl font-ui-bold text-brand-mark-foreground">
           b
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-950">RutGonLink</p>
-          <p className="text-xs text-slate-500">Workspace</p>
+          <p className="text-ui-sm font-ui-semibold text-content-heading">RutGonLink</p>
+          <p className="text-ui-xs text-content-muted">Workspace</p>
         </div>
       </div>
 
@@ -91,11 +91,11 @@ export function SidebarNav() {
       </div>
 
       <div className="flex-1 space-y-6 overflow-y-auto px-4 pb-6 app-scrollbar">
-        <div className="border-t border-[var(--border-soft)] pt-5">
+        <div className="border-t border-border-soft pt-5">
           <NavSection items={primaryNavItems} />
         </div>
 
-        <div className="border-t border-[var(--border-soft)] pt-5">
+        <div className="border-t border-border-soft pt-5">
           <NavSection items={secondaryNavItems} />
         </div>
       </div>
@@ -117,10 +117,10 @@ export function MobileNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${
+            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-ui-sm font-ui-semibold ${
               isActive
-                ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                : "border-[var(--border-soft)] bg-white text-slate-600"
+                ? "border-accent bg-accent-soft text-accent"
+                : "border-border-soft bg-surface text-content-secondary"
             }`}
           >
             <Icon className="size-4" />

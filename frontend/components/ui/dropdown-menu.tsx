@@ -30,7 +30,7 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 min-w-56 rounded-3xl border border-[var(--border-soft)] bg-white p-2 text-slate-950 shadow-[var(--shadow-soft)]",
+          "z-50 min-w-56 rounded-3xl border border-border-soft bg-surface p-2 text-content-heading shadow-app-soft",
           className,
         )}
         {...props}
@@ -49,7 +49,7 @@ function DropdownMenuLabel({
   return (
     <DropdownMenuPrimitive.Label
       data-slot="dropdown-menu-label"
-      className={cn("px-3 py-3 text-sm", inset && "pl-8", className)}
+      className={cn("px-3 py-3 text-ui-sm", inset && "pl-8", className)}
       {...props}
     />
   );
@@ -66,7 +66,7 @@ function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 hover:text-slate-950 focus:bg-slate-50 focus:text-slate-950",
+        "relative flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         inset && "pl-8",
         className,
       )}
@@ -82,7 +82,7 @@ function DropdownMenuSeparator({
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("my-2 h-px bg-[var(--border-soft)]", className)}
+      className={cn("my-2 h-px bg-border-soft", className)}
       {...props}
     />
   );
@@ -98,7 +98,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 hover:text-slate-950 focus:bg-slate-50 focus:text-slate-950",
+        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         className,
       )}
       checked={checked}
@@ -123,7 +123,7 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 hover:text-slate-950 focus:bg-slate-50 focus:text-slate-950",
+        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         className,
       )}
       {...props}
@@ -150,7 +150,7 @@ function DropdownMenuSubTrigger({
     <DropdownMenuPrimitive.SubTrigger
       data-slot="dropdown-menu-sub-trigger"
       className={cn(
-        "flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-700 outline-none hover:bg-slate-50 hover:text-slate-950 focus:bg-slate-50 focus:text-slate-950",
+        "flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         inset && "pl-8",
         className,
       )}
@@ -170,7 +170,7 @@ function DropdownMenuSubContent({
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        "z-50 min-w-44 rounded-3xl border border-[var(--border-soft)] bg-white p-2 text-slate-950 shadow-[var(--shadow-soft)]",
+        "z-50 min-w-44 rounded-3xl border border-border-soft bg-surface p-2 text-content-heading shadow-app-soft",
         className,
       )}
       {...props}

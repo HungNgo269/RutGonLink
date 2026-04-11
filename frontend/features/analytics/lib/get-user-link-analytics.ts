@@ -1,18 +1,12 @@
-import { cookies } from "next/headers";
 import {
   userLinkAnalyticsResponseSchema,
   type UserLinkAnalyticsResponse,
 } from "@/features/analytics/schemas/user-link-analytics.schema";
+import { apiFetch } from "@/lib/api";
 
 export async function getUserLinkAnalytics(): Promise<AnalyticsResult> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.toString();
-
   try {
-    const response = await fetch(`${getApiBaseUrl()}/analytics/links`, {
-      headers: sessionCookie ? { cookie: sessionCookie } : {},
-      cache: "no-store",
-    });
+    const response = await apiFetch("/analytics/links");
 
     if (response.status === 401) {
       return {
@@ -61,16 +55,6 @@ type AnalyticsResult =
       status: "error";
       message: string;
     };
-
-function getApiBaseUrl(): string {
-  const apiBaseUrl = process.env.SHORTEN_URL_API_BASE_URL;
-
-  if (!apiBaseUrl) {
-    throw new Error("SHORTEN_URL_API_BASE_URL is not configured.");
-  }
-
-  return apiBaseUrl.replace(/\/$/, "");
-}
 
 function getErrorMessage(payload: unknown): string {
   if (!payload || typeof payload !== "object") {

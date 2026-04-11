@@ -4,17 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 outline-none",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-ui-sm font-ui-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 outline-none",
   {
     variants: {
       variant: {
         default:
-          "bg-[var(--accent)] text-white shadow-[var(--shadow-panel)] hover:bg-[var(--accent-strong)]",
+          "bg-accent text-content-inverted shadow-app-panel hover:bg-accent-strong",
         secondary:
-          "border border-[var(--border-soft)] bg-white text-slate-700 hover:border-[var(--accent)] hover:text-[var(--accent)]",
-        teal: "bg-[var(--teal)] text-white hover:bg-[#176b7b]",
-        ghost: "text-slate-700 hover:bg-slate-50 hover:text-slate-950",
-        destructive: "text-rose-600 hover:bg-rose-50",
+          "border border-border-soft bg-surface text-content-primary hover:border-accent hover:text-accent",
+        teal: "bg-teal text-content-inverted hover:bg-teal-strong",
+        ghost: "text-content-primary hover:bg-surface-hover hover:text-content-heading",
+        destructive: "text-danger hover:bg-danger-soft",
       },
       size: {
         default: "h-11 px-4 py-2",
