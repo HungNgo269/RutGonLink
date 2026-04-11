@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -22,6 +23,7 @@ import { TrackingModule } from './tracking/tracking.module';
     PrismaModule,
     LoggerModule,
     AuthModule,
+    AnalyticsModule,
     ShortenUrlModule,
     TrackingModule,
   ],
