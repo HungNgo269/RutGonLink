@@ -10,13 +10,21 @@ export class AuthCookieService {
     refreshToken: string,
     refreshTokenMaxAgeMs: number,
   ): void {
-    response.cookie(this.accessCookieName, accessToken, {
-      ...this.baseCookieOptions,
-      maxAge: accessTokenMaxAgeMs,
-    });
+    this.setAccessCookie(response, accessToken, accessTokenMaxAgeMs);
     response.cookie(this.refreshCookieName, refreshToken, {
       ...this.baseCookieOptions,
       maxAge: refreshTokenMaxAgeMs,
+    });
+  }
+
+  setAccessCookie(
+    response: Response,
+    accessToken: string,
+    accessTokenMaxAgeMs: number,
+  ): void {
+    response.cookie(this.accessCookieName, accessToken, {
+      ...this.baseCookieOptions,
+      maxAge: accessTokenMaxAgeMs,
     });
   }
 
@@ -31,6 +39,13 @@ export class AuthCookieService {
 
   readRefreshToken(cookieHeader: string | undefined): string | null {
     return this.readCookie(cookieHeader, this.refreshCookieName);
+  }
+
+  hasAuthCookie(cookieHeader: string | undefined): boolean {
+    return (
+      this.readAccessToken(cookieHeader) !== null ||
+      this.readRefreshToken(cookieHeader) !== null
+    );
   }
 
   private readCookie(

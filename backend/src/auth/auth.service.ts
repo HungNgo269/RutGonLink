@@ -115,6 +115,22 @@ export class AuthService {
     };
   }
 
+  async getAuthenticatedUser(userId: bigint): Promise<AuthResultDto> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: {
+        ...this.userSelection,
+        isActive: true,
+      },
+    });
+
+    if (!user?.isActive) {
+      throw new UnauthorizedException('Authentication is required.');
+    }
+
+    return this.toAuthResult(user);
+  }
+
   async logout(cookieHeader: string | undefined): Promise<void> {
     const session =
       await this.authSessionService.validateStoredRefreshToken(cookieHeader);

@@ -1,5 +1,15 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { AuthCookieService } from '../auth/auth-cookie.service';
 import { AuthSessionService } from '../auth/auth-session.service';
 import { TrackingService } from '../tracking/tracking.service';
 import { BaseUrl } from './decorators/base-url.decorator';
@@ -12,6 +22,7 @@ export class ShortenUrlController {
   constructor(
     private readonly shortenUrlService: ShortenUrlService,
     private readonly authSessionService: AuthSessionService,
+    private readonly authCookieService: AuthCookieService,
     private readonly trackingService: TrackingService,
   ) {}
 
@@ -20,16 +31,32 @@ export class ShortenUrlController {
     @Body() request: CreateShortenUrlDto,
     @BaseUrl() baseUrl: string,
     @Req() httpRequest: Request,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<ShortenedUrlDto> {
-    const authenticatedUserId =
-      await this.authSessionService.getAuthenticatedUserId(
+    const authentication =
+      await this.authSessionService.getAuthenticationResult(
         httpRequest.headers.cookie,
       );
+
+    if (
+      !authentication &&
+      this.authCookieService.hasAuthCookie(httpRequest.headers.cookie)
+    ) {
+      throw new UnauthorizedException('Authentication is invalid.');
+    }
+
+    if (authentication?.refreshedAccessToken) {
+      this.authCookieService.setAccessCookie(
+        response,
+        authentication.refreshedAccessToken.token,
+        authentication.refreshedAccessToken.maxAgeMs,
+      );
+    }
 
     return this.shortenUrlService.shorten(
       request,
       baseUrl,
-      authenticatedUserId,
+      authentication?.userId ?? null,
     );
   }
 

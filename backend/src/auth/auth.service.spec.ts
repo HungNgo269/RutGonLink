@@ -135,6 +135,30 @@ describe('AuthService', () => {
     ).rejects.toThrow(UnauthorizedException);
   });
 
+  it('returns the authenticated user profile', async () => {
+    findUniqueMock.mockResolvedValue({
+      id: BigInt(7),
+      email: 'user@example.com',
+      fullName: 'User Name',
+      tier: UserTier.logged_in,
+      isActive: true,
+    });
+
+    const result = await service.getAuthenticatedUser(BigInt(7));
+
+    expect(findUniqueMock).toHaveBeenCalledWith({
+      where: { id: BigInt(7) },
+      select: expect.objectContaining({
+        id: true,
+        email: true,
+        fullName: true,
+        tier: true,
+        isActive: true,
+      }),
+    });
+    expect(result.user.email).toBe('user@example.com');
+  });
+
   it('when email already exists, rejects registration', async () => {
     findUniqueMock.mockResolvedValue({ id: BigInt(1) });
 

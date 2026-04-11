@@ -8,6 +8,20 @@ import { AuthCookieService } from './auth-cookie.service';
 import { AuthTokenService } from './auth-token.service';
 import { PasswordHashService } from './password-hash.service';
 
+export type AuthenticationResult = {
+  userId: bigint;
+  refreshedAccessToken: {
+    token: string;
+    maxAgeMs: number;
+  } | null;
+};
+
+type VerifiedRefreshToken = {
+  userId: bigint;
+  email: string;
+  tier: string;
+};
+
 @Injectable()
 export class AuthSessionService {
   constructor(
@@ -18,13 +32,13 @@ export class AuthSessionService {
   ) {}
 
   async ensureGuest(cookieHeader: string | undefined): Promise<void> {
-    if ((await this.getAuthenticatedUserId(cookieHeader)) !== null) {
+    if ((await this.getAuthenticationResult(cookieHeader)) !== null) {
       throw new ForbiddenException('You are already authenticated.');
     }
   }
 
   async ensureAuthenticated(cookieHeader: string | undefined): Promise<void> {
-    if ((await this.getAuthenticatedUserId(cookieHeader)) !== null) {
+    if ((await this.getAuthenticationResult(cookieHeader)) !== null) {
       return;
     }
 
@@ -34,25 +48,52 @@ export class AuthSessionService {
   async getAuthenticatedUserId(
     cookieHeader: string | undefined,
   ): Promise<bigint | null> {
+    const authentication = await this.getAuthenticationResult(cookieHeader);
+
+    return authentication?.userId ?? null;
+  }
+
+  async getAuthenticationResult(
+    cookieHeader: string | undefined,
+  ): Promise<AuthenticationResult | null> {
     const accessToken = this.authCookieService.readAccessToken(cookieHeader);
 
     if (accessToken) {
       try {
         const payload = this.authTokenService.verifyAccessToken(accessToken);
-        return BigInt(payload.sub);
+        return {
+          userId: BigInt(payload.sub),
+          refreshedAccessToken: null,
+        };
       } catch {
         // Fall through to refresh token validation.
       }
     }
 
-    const session = await this.validateStoredRefreshToken(cookieHeader);
+    const refreshToken = await this.validateStoredRefreshToken(cookieHeader);
 
-    return session?.userId ?? null;
+    if (!refreshToken) {
+      return null;
+    }
+
+    const refreshedAccessToken = this.authTokenService.createAccessToken({
+      sub: refreshToken.userId.toString(),
+      email: refreshToken.email,
+      tier: refreshToken.tier,
+    });
+
+    return {
+      userId: refreshToken.userId,
+      refreshedAccessToken: {
+        token: refreshedAccessToken.token,
+        maxAgeMs: refreshedAccessToken.expiresInSeconds * 1000,
+      },
+    };
   }
 
   async validateStoredRefreshToken(
     cookieHeader: string | undefined,
-  ): Promise<{ userId: bigint } | null> {
+  ): Promise<VerifiedRefreshToken | null> {
     const refreshToken = this.authCookieService.readRefreshToken(cookieHeader);
 
     if (!refreshToken) {
@@ -61,19 +102,30 @@ export class AuthSessionService {
 
     try {
       const payload = this.authTokenService.verifyRefreshToken(refreshToken);
+      const userId = BigInt(payload.sub);
       const user = await this.prismaService.user.findUnique({
-        where: { id: BigInt(payload.sub) },
-        select: { refreshTokenHash: true },
+        where: { id: userId },
+        select: {
+          email: true,
+          refreshTokenHash: true,
+          tier: true,
+          isActive: true,
+        },
       });
 
       if (
-        !user?.refreshTokenHash ||
+        !user?.isActive ||
+        !user.refreshTokenHash ||
         !this.passwordHashService.matches(refreshToken, user.refreshTokenHash)
       ) {
         return null;
       }
 
-      return { userId: BigInt(payload.sub) };
+      return {
+        userId,
+        email: user.email,
+        tier: user.tier,
+      };
     } catch {
       return null;
     }

@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { headers as requestHeaders } from "next/headers";
 
 type ApiFetchOptions = Omit<RequestInit, "body" | "headers"> & {
   body?: BodyInit | object | null;
@@ -11,23 +11,23 @@ export async function apiFetch(
   options: ApiFetchOptions = {},
 ): Promise<Response> {
   const { body, forwardCookies = true, headers, ...init } = options;
-  const requestHeaders = new Headers(headers);
+  const outgoingHeaders = new Headers(headers);
 
   if (body && typeof body === "object" && !(body instanceof FormData)) {
-    requestHeaders.set("Content-Type", "application/json");
+    outgoingHeaders.set("Content-Type", "application/json");
   }
 
   if (forwardCookies) {
-    const cookieHeader = (await cookies()).toString();
+    const cookieHeader = (await requestHeaders()).get("cookie");
 
     if (cookieHeader) {
-      requestHeaders.set("cookie", cookieHeader);
+      outgoingHeaders.set("cookie", cookieHeader);
     }
   }
 
   return fetch(`${getApiBaseUrl()}${normalizeApiPath(path)}`, {
     ...init,
-    headers: requestHeaders,
+    headers: outgoingHeaders,
     body: serializeBody(body),
     cache: init.cache ?? "no-store",
   });

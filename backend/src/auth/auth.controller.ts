@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
   Req,
@@ -16,6 +17,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { GuestOnlyGuard } from './guards/guest-only.guard';
+import type { AuthenticatedRequest } from './types/authenticated-request.type';
 
 @Controller('auth')
 export class AuthController {
@@ -63,6 +65,12 @@ export class AuthController {
     );
 
     return new AuthResultDto(result.user);
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get('me')
+  async me(@Req() request: AuthenticatedRequest): Promise<AuthResultDto> {
+    return this.authService.getAuthenticatedUser(request.userId);
   }
 
   @UseGuards(AuthenticatedGuard)

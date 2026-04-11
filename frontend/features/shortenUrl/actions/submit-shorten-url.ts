@@ -5,6 +5,8 @@ import {
   shortenedUrlResponseSchema,
   shortenUrlSchema,
 } from "@/features/shortenUrl/schemas/shorten-url.schema";
+import { apiFetch } from "@/lib/api";
+import { applyResponseCookies } from "@/lib/response-cookies";
 
 export async function submitShortenUrl(
   _previousState: ShortenUrlFormState,
@@ -23,14 +25,11 @@ export async function submitShortenUrl(
   }
 
   try {
-    const response = await fetch(`${getApiBaseUrl()}/shorten-url`, {
+    const response = await apiFetch("/shorten-url", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload.data),
-      cache: "no-store",
+      body: payload.data,
     });
+    await applyResponseCookies(response);
 
     const json = await response.json().catch(() => null);
 
@@ -65,16 +64,6 @@ export async function submitShortenUrl(
       data: null,
     };
   }
-}
-
-function getApiBaseUrl(): string {
-  const apiBaseUrl = process.env.SHORTEN_URL_API_BASE_URL;
-
-  if (!apiBaseUrl) {
-    throw new Error("SHORTEN_URL_API_BASE_URL is not configured.");
-  }
-
-  return apiBaseUrl.replace(/\/$/, "");
 }
 
 function getErrorMessage(payload: unknown): string {

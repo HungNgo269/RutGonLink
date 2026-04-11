@@ -1,25 +1,43 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import type { Response } from 'express';
+import { AuthCookieService } from '../auth-cookie.service';
 import { AuthSessionService } from '../auth-session.service';
 import type { AuthenticatedRequest } from '../types/authenticated-request.type';
 
 @Injectable()
 export class AuthenticatedGuard implements CanActivate {
-  constructor(private readonly authSessionService: AuthSessionService) {}
+  constructor(
+    private readonly authSessionService: AuthSessionService,
+    private readonly authCookieService: AuthCookieService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const httpContext = context.switchToHttp();
+    const request = httpContext.getRequest<AuthenticatedRequest>();
 
-    const authenticatedUserId =
-      await this.authSessionService.getAuthenticatedUserId(
-        request.headers.cookie,
-      );
+    const authentication = await this.authSessionService.getAuthenticationResult(
+      request.headers.cookie,
+    );
 
-    if (authenticatedUserId === null) {
-      await this.authSessionService.ensureAuthenticated(request.headers.cookie);
-      return true;
+    if (!authentication) {
+      throw new UnauthorizedException('Authentication is required.');
     }
 
-    request.userId = authenticatedUserId;
+    request.userId = authentication.userId;
+
+    if (authentication.refreshedAccessToken) {
+      const response = httpContext.getResponse<Response>();
+      this.authCookieService.setAccessCookie(
+        response,
+        authentication.refreshedAccessToken.token,
+        authentication.refreshedAccessToken.maxAgeMs,
+      );
+    }
 
     return true;
   }

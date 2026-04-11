@@ -15,8 +15,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/features/auth/actions/auth.actions";
+import { getCurrentUser } from "@/features/auth/lib/get-current-user";
+import type { AuthResponse } from "@/features/auth/schemas/auth.schema";
 
-function AuthMenu() {
+type CurrentUser = AuthResponse["user"];
+
+function AuthMenu({ user }: { user: CurrentUser }) {
+  const initial = user.fullName.trim().charAt(0).toUpperCase() || "U";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -26,11 +32,11 @@ function AuthMenu() {
           className="h-auto rounded-full border border-transparent bg-surface px-1 py-1 hover:border-border-soft hover:bg-surface"
         >
           <span className="flex size-10 items-center justify-center rounded-full bg-content-strong text-ui-sm font-ui-semibold text-content-inverted">
-            H
+            {initial}
           </span>
           <span className="hidden text-left md:block">
             <span className="block text-ui-sm font-ui-semibold text-content-heading">
-              Hung Ngo
+              {user.fullName}
             </span>
             <span className="block text-ui-xs text-content-muted">
               Personal account
@@ -43,16 +49,10 @@ function AuthMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="border-b border-border-soft">
           <p className="text-ui-sm font-ui-semibold text-content-heading">
-            Hung Ngo
+            {user.fullName}
           </p>
-          <p className="mt-1 text-ui-xs text-content-muted">hung@example.com</p>
+          <p className="mt-1 text-ui-xs text-content-muted">{user.email}</p>
         </DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link href="/login">Log in</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/register">Register</Link>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={logout}>
           <DropdownMenuItem
@@ -67,7 +67,9 @@ function AuthMenu() {
   );
 }
 
-export function TopBar() {
+export async function TopBar() {
+  const user = await getCurrentUser();
+
   return (
     <header className="sticky top-0 z-10 flex h-20 items-center justify-between gap-4 border-b border-border-soft bg-surface/95 px-5 backdrop-blur md:px-8">
       <div className="hidden flex-1 md:block" />
@@ -82,13 +84,17 @@ export function TopBar() {
           />
         </label>
 
-        <Button asChild variant="teal">
-          <Link href="/register">Register</Link>
-        </Button>
+        {user ? null : (
+          <>
+            <Button asChild variant="teal">
+              <Link href="/register">Register</Link>
+            </Button>
 
-        <Button asChild variant="secondary" className="hidden md:inline-flex">
-          <Link href="/login">Log in</Link>
-        </Button>
+            <Button asChild variant="secondary" className="hidden md:inline-flex">
+              <Link href="/login">Log in</Link>
+            </Button>
+          </>
+        )}
 
         <Button
           type="button"
@@ -108,7 +114,7 @@ export function TopBar() {
           <Sparkles className="size-5" />
         </Button>
 
-        <AuthMenu />
+        {user ? <AuthMenu user={user} /> : null}
       </div>
     </header>
   );

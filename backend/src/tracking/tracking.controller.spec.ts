@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AuthCookieService } from '../auth/auth-cookie.service';
 import { AuthSessionService } from '../auth/auth-session.service';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import { TrackingController } from './tracking.controller';
@@ -41,6 +42,12 @@ describe('TrackingController', () => {
         {
           provide: AuthSessionService,
           useValue: authSessionService,
+        },
+        {
+          provide: AuthCookieService,
+          useValue: {
+            setAccessCookie: jest.fn(),
+          },
         },
         AuthenticatedGuard,
       ],

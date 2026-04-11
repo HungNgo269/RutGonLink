@@ -13,6 +13,7 @@ describe('AuthController', () => {
   let controller: AuthController;
   let registerMock: jest.Mock;
   let loginMock: jest.Mock;
+  let getAuthenticatedUserMock: jest.Mock;
   let logoutMock: jest.Mock;
   let setAuthCookiesMock: jest.Mock;
   let clearAuthCookiesMock: jest.Mock;
@@ -20,6 +21,7 @@ describe('AuthController', () => {
   beforeEach(async () => {
     registerMock = jest.fn();
     loginMock = jest.fn();
+    getAuthenticatedUserMock = jest.fn();
     logoutMock = jest.fn();
     setAuthCookiesMock = jest.fn();
     clearAuthCookiesMock = jest.fn();
@@ -32,6 +34,7 @@ describe('AuthController', () => {
           useValue: {
             register: registerMock,
             login: loginMock,
+            getAuthenticatedUser: getAuthenticatedUserMock,
             logout: logoutMock,
           },
         },
@@ -105,5 +108,23 @@ describe('AuthController', () => {
     expect(logoutMock).toHaveBeenCalledWith('refresh_token=refresh-token');
     expect(clearAuthCookiesMock).toHaveBeenCalledWith(response);
     expect(result).toEqual({ success: true });
+  });
+
+  it('returns the authenticated user', async () => {
+    getAuthenticatedUserMock.mockResolvedValue({
+      user: {
+        id: '7',
+        email: 'user@example.com',
+        fullName: 'User Name',
+        tier: 'logged_in',
+      },
+    });
+
+    const result = await controller.me({
+      userId: BigInt(7),
+    } as never);
+
+    expect(getAuthenticatedUserMock).toHaveBeenCalledWith(BigInt(7));
+    expect(result.user.email).toBe('user@example.com');
   });
 });

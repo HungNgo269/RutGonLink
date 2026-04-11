@@ -30,6 +30,8 @@ describe('AuthSessionService', () => {
       readAccessToken: jest.fn(),
       readRefreshToken: jest.fn(),
       clearAuthCookies: jest.fn(),
+      hasAuthCookie: jest.fn(),
+      setAccessCookie: jest.fn(),
       setAuthCookies: jest.fn(),
     } as unknown as jest.Mocked<AuthCookieService>;
     authTokenService = {
@@ -75,9 +77,16 @@ describe('AuthSessionService', () => {
       type: 'refresh',
     });
     prismaService.user.findUnique.mockResolvedValue({
+      email: 'user@example.com',
+      tier: 'logged_in',
       refreshTokenHash: 'stored-hash',
+      isActive: true,
     });
     passwordHashService.matches.mockReturnValue(true);
+    authTokenService.createAccessToken.mockReturnValue({
+      token: 'new-access-token',
+      expiresInSeconds: 900,
+    });
 
     await expect(
       service.ensureAuthenticated('refresh_token=refresh-token'),
@@ -96,6 +105,43 @@ describe('AuthSessionService', () => {
     await expect(
       service.getAuthenticatedUserId('access_token=access-token'),
     ).resolves.toBe(BigInt(42));
+  });
+
+  it('when access token is invalid and refresh token is valid, returns a refreshed access token', async () => {
+    authCookieService.readAccessToken.mockReturnValue('expired-access-token');
+    authCookieService.readRefreshToken.mockReturnValue('refresh-token');
+    authTokenService.verifyAccessToken.mockImplementation(() => {
+      throw new UnauthorizedException('Invalid token.');
+    });
+    authTokenService.verifyRefreshToken.mockReturnValue({
+      sub: '7',
+      email: 'user@example.com',
+      tier: 'logged_in',
+      type: 'refresh',
+    });
+    prismaService.user.findUnique.mockResolvedValue({
+      email: 'user@example.com',
+      tier: 'logged_in',
+      refreshTokenHash: 'stored-hash',
+      isActive: true,
+    });
+    passwordHashService.matches.mockReturnValue(true);
+    authTokenService.createAccessToken.mockReturnValue({
+      token: 'new-access-token',
+      expiresInSeconds: 900,
+    });
+
+    await expect(
+      service.getAuthenticationResult(
+        'access_token=expired-access-token; refresh_token=refresh-token',
+      ),
+    ).resolves.toEqual({
+      userId: BigInt(7),
+      refreshedAccessToken: {
+        token: 'new-access-token',
+        maxAgeMs: 900000,
+      },
+    });
   });
 
   it('when no valid session exists, rejects authenticated-only access', async () => {

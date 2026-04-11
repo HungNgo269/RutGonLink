@@ -19,6 +19,6 @@ import { PasswordHashService } from './password-hash.service';
     GuestOnlyGuard,
     PasswordHashService,
   ],
-  exports: [AuthSessionService, AuthenticatedGuard],
+  exports: [AuthCookieService, AuthSessionService, AuthenticatedGuard],
 })
 export class AuthModule {}
