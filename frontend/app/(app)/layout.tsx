@@ -7,7 +7,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen lg:grid-cols-[232px_minmax(0,1fr)]">
         <div className="sticky top-0 hidden h-screen lg:block">
           <SidebarNav />
@@ -15,7 +15,7 @@ export default function AppLayout({
 
         <div className="flex min-h-screen min-w-0 flex-col">
           <TopBar />
-          <div className="border-b border-[var(--border-soft)] bg-white lg:hidden">
+          <div className="border-b border-border-soft bg-surface lg:hidden">
             <MobileNav />
           </div>
 

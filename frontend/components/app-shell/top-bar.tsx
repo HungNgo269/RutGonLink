@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { logout } from "@/features/auth/actions/auth.actions";
 
 function AuthMenu() {
   return (
@@ -22,36 +23,45 @@ function AuthMenu() {
         <Button
           type="button"
           variant="ghost"
-          className="h-auto rounded-full border border-transparent bg-white px-1 py-1 hover:border-[var(--border-soft)] hover:bg-white"
+          className="h-auto rounded-full border border-transparent bg-surface px-1 py-1 hover:border-border-soft hover:bg-surface"
         >
-        <span className="flex size-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-          H
-        </span>
-        <span className="hidden text-left md:block">
-          <span className="block text-sm font-semibold text-slate-950">
-            Hung Ngo
+          <span className="flex size-10 items-center justify-center rounded-full bg-content-strong text-ui-sm font-ui-semibold text-content-inverted">
+            H
           </span>
-          <span className="block text-xs text-slate-500">Personal account</span>
-        </span>
-        <ChevronDown className="mr-2 hidden size-4 text-slate-500 md:block" />
+          <span className="hidden text-left md:block">
+            <span className="block text-ui-sm font-ui-semibold text-content-heading">
+              Hung Ngo
+            </span>
+            <span className="block text-ui-xs text-content-muted">
+              Personal account
+            </span>
+          </span>
+          <ChevronDown className="mr-2 hidden size-4 text-content-muted md:block" />
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="border-b border-[var(--border-soft)]">
-          <p className="text-sm font-semibold text-slate-950">Hung Ngo</p>
-          <p className="mt-1 text-xs text-slate-500">hung@example.com</p>
+        <DropdownMenuLabel className="border-b border-border-soft">
+          <p className="text-ui-sm font-ui-semibold text-content-heading">
+            Hung Ngo
+          </p>
+          <p className="mt-1 text-ui-xs text-content-muted">hung@example.com</p>
         </DropdownMenuLabel>
         <DropdownMenuItem asChild>
-          <Link href="/">Log in</Link>
+          <Link href="/login">Log in</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/">Register</Link>
+          <Link href="/register">Register</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-rose-600 focus:text-rose-700 hover:!bg-rose-50">
-          Log out
-        </DropdownMenuItem>
+        <form action={logout}>
+          <DropdownMenuItem
+            asChild
+            className="w-full text-danger focus:text-danger-strong hover:!bg-danger-soft"
+          >
+            <button type="submit">Log out</button>
+          </DropdownMenuItem>
+        </form>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -59,27 +69,25 @@ function AuthMenu() {
 
 export function TopBar() {
   return (
-    <header className="sticky top-0 z-10 flex h-20 items-center justify-between gap-4 border-b border-[var(--border-soft)] bg-white/95 px-5 backdrop-blur md:px-8">
+    <header className="sticky top-0 z-10 flex h-20 items-center justify-between gap-4 border-b border-border-soft bg-surface/95 px-5 backdrop-blur md:px-8">
       <div className="hidden flex-1 md:block" />
 
       <div className="flex flex-1 items-center justify-end gap-3">
-        <label className="hidden min-w-0 max-w-md flex-1 items-center gap-3 rounded-2xl border border-transparent bg-[var(--surface-muted)] px-4 py-3 text-sm text-slate-500 shadow-[inset_0_0_0_1px_rgba(216,227,242,0.65)] md:flex">
-          <Search className="size-4 shrink-0 text-slate-500" />
+        <label className="hidden min-w-0 max-w-md flex-1 items-center gap-3 rounded-2xl border border-transparent bg-surface-muted px-4 py-3 text-ui-sm text-content-muted shadow-search-inset md:flex">
+          <Search className="size-4 shrink-0 text-content-muted" />
           <input
             type="search"
             placeholder="Search..."
-            className="w-full bg-transparent text-slate-700 outline-none placeholder:text-slate-400"
+            className="w-full bg-transparent text-content-primary outline-none placeholder:text-content-subtle"
           />
         </label>
 
         <Button asChild variant="teal">
-          <Link href="/">
-          Register
-          </Link>
+          <Link href="/register">Register</Link>
         </Button>
 
         <Button asChild variant="secondary" className="hidden md:inline-flex">
-          <Link href="/">Log in</Link>
+          <Link href="/login">Log in</Link>
         </Button>
 
         <Button
