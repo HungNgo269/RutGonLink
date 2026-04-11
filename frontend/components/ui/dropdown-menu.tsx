@@ -15,7 +15,10 @@ function DropdownMenuTrigger({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
   return (
-    <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
+    <DropdownMenuPrimitive.Trigger
+      data-slot="dropdown-menu-trigger"
+      {...props}
+    />
   );
 }
 
@@ -66,7 +69,7 @@ function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "relative flex cursor-pointer select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         inset && "pl-8",
         className,
       )}
@@ -98,7 +101,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "relative flex cursor-pointer select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         className,
       )}
       checked={checked}
@@ -123,7 +126,7 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "relative flex cursor-pointer select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         className,
       )}
       {...props}
@@ -150,7 +153,7 @@ function DropdownMenuSubTrigger({
     <DropdownMenuPrimitive.SubTrigger
       data-slot="dropdown-menu-sub-trigger"
       className={cn(
-        "flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "flex cursor-pointer select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
         inset && "pl-8",
         className,
       )}

@@ -34,12 +34,20 @@ export class AuthSessionService {
   async getAuthenticatedUserId(
     cookieHeader: string | undefined,
   ): Promise<bigint | null> {
+    const session = await this.getAuthenticatedSession(cookieHeader);
+
+    return session?.userId ?? null;
+  }
+
+  async getAuthenticatedSession(
+    cookieHeader: string | undefined,
+  ): Promise<AuthenticatedSession | null> {
     const accessToken = this.authCookieService.readAccessToken(cookieHeader);
 
     if (accessToken) {
       try {
         const payload = this.authTokenService.verifyAccessToken(accessToken);
-        return BigInt(payload.sub);
+        return { source: 'access', userId: BigInt(payload.sub) };
       } catch {
         // Fall through to refresh token validation.
       }
@@ -47,7 +55,11 @@ export class AuthSessionService {
 
     const session = await this.validateStoredRefreshToken(cookieHeader);
 
-    return session?.userId ?? null;
+    if (!session) {
+      return null;
+    }
+
+    return { source: 'refresh', userId: session.userId };
   }
 
   async validateStoredRefreshToken(
@@ -79,3 +91,8 @@ export class AuthSessionService {
     }
   }
 }
+
+type AuthenticatedSession = {
+  source: 'access' | 'refresh';
+  userId: bigint;
+};

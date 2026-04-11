@@ -8,9 +8,12 @@ jest.mock('../auth-session.service', () => ({
 
 describe('AuthenticatedGuard', () => {
   it('stores authenticated user id on the request', async () => {
-    const getAuthenticatedUserIdMock = jest.fn().mockResolvedValue(BigInt(7));
+    const getAuthenticatedSessionMock = jest.fn().mockResolvedValue({
+      source: 'refresh',
+      userId: BigInt(7),
+    });
     const authSessionService = {
-      getAuthenticatedUserId: getAuthenticatedUserIdMock,
+      getAuthenticatedSession: getAuthenticatedSessionMock,
       ensureAuthenticated: jest.fn(),
     } as unknown as jest.Mocked<AuthSessionService>;
     const guard = new AuthenticatedGuard(authSessionService);
@@ -26,11 +29,12 @@ describe('AuthenticatedGuard', () => {
       }),
     } as ExecutionContext);
 
-    expect(getAuthenticatedUserIdMock).toHaveBeenCalledWith(
+    expect(getAuthenticatedSessionMock).toHaveBeenCalledWith(
       'refresh_token=value',
     );
     expect(request).toEqual(
       expect.objectContaining({
+        authSessionSource: 'refresh',
         userId: BigInt(7),
       }),
     );

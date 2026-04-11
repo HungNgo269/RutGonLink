@@ -9,17 +9,17 @@ export class AuthenticatedGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
-    const authenticatedUserId =
-      await this.authSessionService.getAuthenticatedUserId(
-        request.headers.cookie,
-      );
+    const session = await this.authSessionService.getAuthenticatedSession(
+      request.headers.cookie,
+    );
 
-    if (authenticatedUserId === null) {
+    if (!session) {
       await this.authSessionService.ensureAuthenticated(request.headers.cookie);
       return true;
     }
 
-    request.userId = authenticatedUserId;
+    request.authSessionSource = session.source;
+    request.userId = session.userId;
 
     return true;
   }

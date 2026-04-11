@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-ui-sm font-ui-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 outline-none",
+  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-ui-sm font-ui-semibold transition-colors outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -13,7 +13,8 @@ const buttonVariants = cva(
         secondary:
           "border border-border-soft bg-surface text-content-primary hover:border-accent hover:text-accent",
         teal: "bg-teal text-content-inverted hover:bg-teal-strong",
-        ghost: "text-content-primary hover:bg-surface-hover hover:text-content-heading",
+        ghost:
+          "text-content-primary hover:bg-surface-hover hover:text-content-heading",
         destructive: "text-danger hover:bg-danger-soft",
       },
       size: {
@@ -30,7 +31,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }

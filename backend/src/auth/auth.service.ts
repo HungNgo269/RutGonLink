@@ -115,6 +115,32 @@ export class AuthService {
     };
   }
 
+  async getCurrentUser(userId: bigint): Promise<AuthResultDto> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: this.userSelection,
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Authentication is required.');
+    }
+
+    return this.toAuthResult(user);
+  }
+
+  issueAccessToken(user: AuthenticatedUserDto): AuthAccessTokenResult {
+    const accessToken = this.authTokenService.createAccessToken({
+      sub: user.id,
+      email: user.email,
+      tier: user.tier,
+    });
+
+    return {
+      accessToken: accessToken.token,
+      accessTokenMaxAgeMs: accessToken.expiresInSeconds * 1000,
+    };
+  }
+
   async logout(cookieHeader: string | undefined): Promise<void> {
     const session =
       await this.authSessionService.validateStoredRefreshToken(cookieHeader);
@@ -228,3 +254,8 @@ type AuthTokensResult = {
   refreshToken: string;
   refreshTokenMaxAgeMs: number;
 };
+
+type AuthAccessTokenResult = Pick<
+  AuthTokensResult,
+  'accessToken' | 'accessTokenMaxAgeMs'
+>;

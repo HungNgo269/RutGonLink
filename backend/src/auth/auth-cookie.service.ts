@@ -20,6 +20,17 @@ export class AuthCookieService {
     });
   }
 
+  setAccessCookie(
+    response: Response,
+    accessToken: string,
+    accessTokenMaxAgeMs: number,
+  ): void {
+    response.cookie(this.accessCookieName, accessToken, {
+      ...this.baseCookieOptions,
+      maxAge: accessTokenMaxAgeMs,
+    });
+  }
+
   clearAuthCookies(response: Response): void {
     response.clearCookie(this.accessCookieName, this.baseCookieOptions);
     response.clearCookie(this.refreshCookieName, this.baseCookieOptions);

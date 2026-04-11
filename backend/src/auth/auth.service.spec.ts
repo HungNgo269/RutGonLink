@@ -147,6 +147,65 @@ describe('AuthService', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('returns the current authenticated user', async () => {
+    findUniqueMock.mockResolvedValue({
+      id: BigInt(7),
+      email: 'user@example.com',
+      fullName: 'User Name',
+      tier: UserTier.logged_in,
+    });
+
+    const result = await service.getCurrentUser(BigInt(7));
+
+    expect(findUniqueMock).toHaveBeenCalledWith({
+      where: { id: BigInt(7) },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        tier: true,
+      },
+    });
+    expect(result.user).toEqual({
+      id: '7',
+      email: 'user@example.com',
+      fullName: 'User Name',
+      tier: UserTier.logged_in,
+    });
+  });
+
+  it('when current user no longer exists, rejects the session', async () => {
+    findUniqueMock.mockResolvedValue(null);
+
+    await expect(service.getCurrentUser(BigInt(7))).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('issues a fresh access token for an authenticated user', () => {
+    createAccessTokenMock.mockReturnValue({
+      token: 'new-access-token',
+      expiresInSeconds: 900,
+    });
+
+    const result = service.issueAccessToken({
+      id: '7',
+      email: 'user@example.com',
+      fullName: 'User Name',
+      tier: UserTier.logged_in,
+    });
+
+    expect(createAccessTokenMock).toHaveBeenCalledWith({
+      sub: '7',
+      email: 'user@example.com',
+      tier: UserTier.logged_in,
+    });
+    expect(result).toEqual({
+      accessToken: 'new-access-token',
+      accessTokenMaxAgeMs: 900000,
+    });
+  });
+
   it('when logout receives a valid refresh token, clears the stored hash', async () => {
     validateStoredRefreshTokenMock.mockResolvedValue({
       userId: BigInt(7),

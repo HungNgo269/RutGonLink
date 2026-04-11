@@ -1,11 +1,14 @@
 import { MobileNav, SidebarNav } from "@/components/app-shell/sidebar-nav";
 import { TopBar } from "@/components/app-shell/top-bar";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen lg:grid-cols-[232px_minmax(0,1fr)]">
@@ -14,7 +17,7 @@ export default function AppLayout({
         </div>
 
         <div className="flex min-h-screen min-w-0 flex-col">
-          <TopBar />
+          <TopBar currentUser={currentUser} />
           <div className="border-b border-border-soft bg-surface lg:hidden">
             <MobileNav />
           </div>

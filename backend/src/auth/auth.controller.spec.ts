@@ -13,15 +13,21 @@ describe('AuthController', () => {
   let controller: AuthController;
   let registerMock: jest.Mock;
   let loginMock: jest.Mock;
+  let getCurrentUserMock: jest.Mock;
   let logoutMock: jest.Mock;
+  let issueAccessTokenMock: jest.Mock;
   let setAuthCookiesMock: jest.Mock;
+  let setAccessCookieMock: jest.Mock;
   let clearAuthCookiesMock: jest.Mock;
 
   beforeEach(async () => {
     registerMock = jest.fn();
     loginMock = jest.fn();
+    getCurrentUserMock = jest.fn();
     logoutMock = jest.fn();
+    issueAccessTokenMock = jest.fn();
     setAuthCookiesMock = jest.fn();
+    setAccessCookieMock = jest.fn();
     clearAuthCookiesMock = jest.fn();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -32,6 +38,8 @@ describe('AuthController', () => {
           useValue: {
             register: registerMock,
             login: loginMock,
+            getCurrentUser: getCurrentUserMock,
+            issueAccessToken: issueAccessTokenMock,
             logout: logoutMock,
           },
         },
@@ -39,6 +47,7 @@ describe('AuthController', () => {
           provide: AuthCookieService,
           useValue: {
             setAuthCookies: setAuthCookiesMock,
+            setAccessCookie: setAccessCookieMock,
             clearAuthCookies: clearAuthCookiesMock,
           },
         },
@@ -88,6 +97,61 @@ describe('AuthController', () => {
       2000,
     );
     expect(result.user.email).toBe('user@example.com');
+  });
+
+  it('returns the current authenticated user', async () => {
+    getCurrentUserMock.mockResolvedValue({
+      user: {
+        id: '7',
+        email: 'user@example.com',
+        fullName: 'User Name',
+        tier: 'logged_in',
+      },
+    });
+
+    const response = { cookie: jest.fn() } as unknown as Response;
+    const result = await controller.me(
+      {
+        authSessionSource: 'access',
+        userId: BigInt(7),
+      } as never,
+      response,
+    );
+
+    expect(getCurrentUserMock).toHaveBeenCalledWith(BigInt(7));
+    expect(setAccessCookieMock).not.toHaveBeenCalled();
+    expect(result.user.email).toBe('user@example.com');
+  });
+
+  it('refreshes the access cookie when current user was authenticated by refresh token', async () => {
+    const user = {
+      id: '7',
+      email: 'user@example.com',
+      fullName: 'User Name',
+      tier: 'logged_in',
+    };
+    getCurrentUserMock.mockResolvedValue({ user });
+    issueAccessTokenMock.mockReturnValue({
+      accessToken: 'new-access-token',
+      accessTokenMaxAgeMs: 1000,
+    });
+    const response = { cookie: jest.fn() } as unknown as Response;
+
+    const result = await controller.me(
+      {
+        authSessionSource: 'refresh',
+        userId: BigInt(7),
+      } as never,
+      response,
+    );
+
+    expect(issueAccessTokenMock).toHaveBeenCalledWith(user);
+    expect(setAccessCookieMock).toHaveBeenCalledWith(
+      response,
+      'new-access-token',
+      1000,
+    );
+    expect(result.user.id).toBe('7');
   });
 
   it('delegates logout, then clears auth cookies', async () => {

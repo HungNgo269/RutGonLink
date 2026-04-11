@@ -10,8 +10,9 @@ import {
 } from "@/features/auth/schemas/auth.schema";
 import { apiFetch } from "@/lib/api";
 
-const loginBackendErrorMessage = "Wrong credential";
-const registerBackendErrorMessage = "Unable to register";
+const loginBackendErrorMessage = "Invalid email or password.";
+const registerBackendErrorMessage = "Unable to register.";
+const fallbackBackendErrorMessage = "Something went wrong. Please try again.";
 
 type SameSiteCookieValue = "lax" | "strict" | "none";
 
@@ -26,6 +27,15 @@ type SetCookie = {
   sameSite?: SameSiteCookieValue;
 };
 
+type AuthAttempt =
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
 export async function login(
   _previousState: AuthFormState,
   formData: FormData,
@@ -39,10 +49,14 @@ export async function login(
     return createInvalidState(payload.error.flatten().fieldErrors);
   }
 
-  const authenticated = await authenticate("/auth/login", payload.data);
+  const authenticated = await authenticate(
+    "/auth/login",
+    payload.data,
+    loginBackendErrorMessage,
+  );
 
-  if (!authenticated) {
-    return createBackendErrorState(loginBackendErrorMessage);
+  if (!authenticated.ok) {
+    return createBackendErrorState(authenticated.message);
   }
 
   redirect("/");
@@ -62,10 +76,14 @@ export async function register(
     return createInvalidState(payload.error.flatten().fieldErrors);
   }
 
-  const authenticated = await authenticate("/auth/register", payload.data);
+  const authenticated = await authenticate(
+    "/auth/register",
+    payload.data,
+    registerBackendErrorMessage,
+  );
 
-  if (!authenticated) {
-    return createBackendErrorState(registerBackendErrorMessage);
+  if (!authenticated.ok) {
+    return createBackendErrorState(authenticated.message);
   }
 
   redirect("/");
@@ -86,7 +104,11 @@ export async function logout(): Promise<void> {
   redirect("/login");
 }
 
-async function authenticate(path: string, payload: object): Promise<boolean> {
+async function authenticate(
+  path: string,
+  payload: object,
+  defaultMessage: string,
+): Promise<AuthAttempt> {
   try {
     const response = await apiFetch(path, {
       method: "POST",
@@ -96,14 +118,45 @@ async function authenticate(path: string, payload: object): Promise<boolean> {
     const json = await response.json().catch(() => null);
 
     if (!response.ok || !authResponseSchema.safeParse(json).success) {
-      return false;
+      return {
+        ok: false,
+        message: getBackendErrorMessage(json, defaultMessage),
+      };
     }
 
     await applyResponseCookies(response);
-    return true;
+    return { ok: true };
   } catch {
-    return false;
+    return { ok: false, message: fallbackBackendErrorMessage };
   }
+}
+
+function getBackendErrorMessage(body: unknown, defaultMessage: string): string {
+  if (!body || typeof body !== "object") {
+    return defaultMessage;
+  }
+
+  const response = "response" in body ? body.response : body;
+
+  if (typeof response === "string") {
+    return response || defaultMessage;
+  }
+
+  if (!response || typeof response !== "object") {
+    return defaultMessage;
+  }
+
+  const message = "message" in response ? response.message : null;
+
+  if (typeof message === "string") {
+    return message || defaultMessage;
+  }
+
+  if (Array.isArray(message)) {
+    return message.find((item) => typeof item === "string") ?? defaultMessage;
+  }
+
+  return defaultMessage;
 }
 
 async function clearAuthCookies(): Promise<void> {
@@ -142,7 +195,9 @@ function getSetCookieHeaders(headers: Headers): string[] {
 }
 
 function parseSetCookie(header: string): SetCookie | null {
-  const [nameValue, ...attributes] = header.split(";").map((part) => part.trim());
+  const [nameValue, ...attributes] = header
+    .split(";")
+    .map((part) => part.trim());
   const separatorIndex = nameValue.indexOf("=");
 
   if (separatorIndex < 1) {

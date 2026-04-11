@@ -7,9 +7,14 @@ import {
   QrCode,
   Sparkles,
 } from "lucide-react";
+import Link from "next/link";
 import { ShortenUrlForm } from "@/features/shortenUrl/components/ShortenUrlForm";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function AppPage() {
+export default async function AppPage() {
+  const currentUser = await getCurrentUser();
+  const displayName = currentUser?.fullName ?? "there";
+
   return (
     <section className="space-y-8">
       <div className="flex justify-center">
@@ -81,12 +86,21 @@ export default function AppPage() {
             ))}
           </div>
 
-          <button
-            type="button"
-            className="mt-7 inline-flex w-full items-center justify-center rounded-2xl bg-teal px-4 py-3.5 text-ui-sm font-ui-semibold text-content-inverted hover:bg-teal-strong"
-          >
-            Register now
-          </button>
+          {currentUser ? (
+            <Link
+              href="/analytics"
+              className="mt-7 inline-flex w-full items-center justify-center rounded-2xl bg-teal px-4 py-3.5 text-ui-sm font-ui-semibold text-content-inverted hover:bg-teal-strong"
+            >
+              View analytics
+            </Link>
+          ) : (
+            <Link
+              href="/register"
+              className="mt-7 inline-flex w-full items-center justify-center rounded-2xl bg-teal px-4 py-3.5 text-ui-sm font-ui-semibold text-content-inverted hover:bg-teal-strong"
+            >
+              Create account
+            </Link>
+          )}
         </aside>
       </div>
 
@@ -95,10 +109,12 @@ export default function AppPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-heading-sm font-ui-semibold tracking-tight text-content-heading">
-                Connect your account
+                {currentUser ? "Connect your tools" : "Connect your account"}
               </h2>
               <p className="mt-2 text-ui-sm text-content-secondary">
-                Recommended integrations to speed up link creation and sharing.
+                {currentUser
+                  ? "Recommended integrations to speed up link creation and sharing."
+                  : "Create an account to keep integrations tied to your workspace."}
               </p>
             </div>
 
@@ -160,7 +176,7 @@ export default function AppPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="max-w-md text-heading-sm font-ui-semibold tracking-tight text-content-heading">
-                Hi Hung Ngo, get started with RutGonLink
+                Hi {displayName}, get started with RutGonLink
               </h2>
               <p className="mt-2 text-ui-sm text-content-secondary">
                 Complete a few small tasks to unlock the rest of the workspace.
@@ -168,7 +184,9 @@ export default function AppPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-ui-lg font-ui-semibold text-content-primary">33%</span>
+              <span className="text-ui-lg font-ui-semibold text-content-primary">
+                33%
+              </span>
               <div className="relative size-11 rounded-full bg-progress-ring p-1">
                 <div className="size-full rounded-full bg-surface" />
               </div>
@@ -179,7 +197,9 @@ export default function AppPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="mt-0.5 size-5 text-success" />
               <div>
-                <p className="font-ui-semibold text-content-heading">Link shortened</p>
+                <p className="font-ui-semibold text-content-heading">
+                  Link shortened
+                </p>
                 <p className="mt-1 text-ui-sm text-content-secondary">
                   You already created your first result.
                 </p>
