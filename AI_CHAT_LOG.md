@@ -195,3 +195,35 @@ Can you add Tracking into click. If the tracking logic is a bit complicated like
 ### What Was Modified and What Specifically Changed
 
 - split the tracking into new tracking feature not inside the shorten-url feature.So just import TrackingModule for ShortenUrlModule.
+
+### Prompt Given to the AI 8
+
+Can you code a solid,dry,tdd analitics shorten url, which gonna be use to display analitics for user at /analitics page. I want it show a list of source url the current user did shorten and their tracking info. look through the folder structure before code, and tell me if you gonna use third parrty feature
+
+### What the AI Generated
+
+- A basic analitics feature in backend record clicking data for shorten url : a table that contain a list of shorten url with end point GET /analytics/links
+
+### What Was Accepted As-Is and Why
+
+- All, the code is in good concept and separate concern. It do return enough data for frontend render.
+
+### What Was Modified and What Specifically Changed
+
+- Nothing
+
+### Prompt Given to the AI 9
+
+implement for me a View details for analitics table logic at backend. When click, it should return all the information that needed to render at frontend (ip,reference,...)
+
+### What the AI Generated
+
+- A end point where frontend can extract detail of the link for render.
+
+### What Was Accepted As-Is and Why
+
+- Accept the logic, it seems simple and clear.
+
+### What Was Modified and What Specifically Changed
+
+- Nothing
