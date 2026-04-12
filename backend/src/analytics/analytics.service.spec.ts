@@ -1,4 +1,5 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { AnalyticsService } from './analytics.service';
 import { NotFoundException } from '@nestjs/common';
 
@@ -17,6 +18,9 @@ describe('AnalyticsService', () => {
       groupBy: jest.Mock;
     };
   };
+  let redisService: {
+    del: jest.Mock;
+  };
 
   beforeEach(() => {
     prismaService = {
@@ -32,8 +36,14 @@ describe('AnalyticsService', () => {
         groupBy: jest.fn(),
       },
     };
+    redisService = {
+      del: jest.fn(),
+    };
 
-    service = new AnalyticsService(prismaService as unknown as PrismaService);
+    service = new AnalyticsService(
+      prismaService as unknown as PrismaService,
+      redisService as unknown as RedisService,
+    );
     jest
       .useFakeTimers()
       .setSystemTime(new Date('2026-04-12T00:00:00.000Z').getTime());
@@ -171,6 +181,7 @@ describe('AnalyticsService', () => {
     expect(prismaService.shortenedLink.delete).toHaveBeenCalledWith({
       where: { shortCode: 'abc1234' },
     });
+    expect(redisService.del).toHaveBeenCalledWith('redirect:abc1234');
   });
 
   it('when deleting a non-owned link, rejects access', async () => {
@@ -183,6 +194,7 @@ describe('AnalyticsService', () => {
       service.deleteUserShortenedLink('abc1234', BigInt(7)),
     ).rejects.toThrow(NotFoundException);
     expect(prismaService.shortenedLink.delete).not.toHaveBeenCalled();
+    expect(redisService.del).not.toHaveBeenCalled();
   });
 
   it('when loading analytics details for an owned link, returns aggregate metrics for rendering', async () => {

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { INestApplication } from '@nestjs/common';
+import { RequestMethod, type INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { Express } from 'express';
@@ -23,7 +23,9 @@ async function bootstrap() {
     credentials: true,
   });
   if (apiGlobalPrefix) {
-    app.setGlobalPrefix(apiGlobalPrefix);
+    app.setGlobalPrefix(apiGlobalPrefix, {
+      exclude: [{ path: ':shortCode', method: RequestMethod.GET }],
+    });
   }
   setupSwagger(app);
 

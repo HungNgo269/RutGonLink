@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, RequestMethod } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
@@ -92,7 +92,9 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix(getApiGlobalPrefix());
+    app.setGlobalPrefix(getApiGlobalPrefix(), {
+      exclude: [{ path: ':shortCode', method: RequestMethod.GET }],
+    });
     await app.init();
   });
 
@@ -116,12 +118,12 @@ describe('AppController (e2e)', () => {
         expect(body.originalUrl).toBe('https://example.com/very/long/link');
         expect(body.shortCode).toMatch(/^[A-Za-z0-9_-]{7}$/);
         expect(body.shortenedUrl).toMatch(
-          /^http:\/\/127\.0\.0\.1:\d+\/v1\/app\/[A-Za-z0-9_-]{7}$/,
+          /^http:\/\/127\.0\.0\.1:\d+\/[A-Za-z0-9_-]{7}$/,
         );
       });
   });
 
-  it('/v1/app/:shortCode (GET) redirects to the original destination', async () => {
+  it('/:shortCode (GET) redirects to the original destination', async () => {
     const createResponse = await request(app.getHttpServer())
       .post(`${apiPrefix}/shorten-url`)
       .send({
@@ -131,7 +133,7 @@ describe('AppController (e2e)', () => {
     const createResponseBody = createResponse.body as ShortenedUrlResponse;
 
     await request(app.getHttpServer())
-      .get(`${apiPrefix}/${createResponseBody.shortCode}`)
+      .get(`/${createResponseBody.shortCode}`)
       .expect(302)
       .expect('Location', 'https://example.com/very/long/link');
   });

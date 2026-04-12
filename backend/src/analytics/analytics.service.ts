@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import {
   LinkAnalyticsBreakdownDto,
   LinkAnalyticsDetailDto,
@@ -12,9 +13,14 @@ import {
 } from './dto/user-link-analytics.dto';
 import { DeleteShortenedLinkDto } from './dto/delete-shortened-link.dto';
 
+const REDIS_REDIRECT_PREFIX = 'redirect:';
+
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async getUserLinkAnalytics(
     authenticatedUserId: bigint,
@@ -122,6 +128,7 @@ export class AnalyticsService {
     await this.prismaService.shortenedLink.delete({
       where: { shortCode },
     });
+    await this.redisService.del(`${REDIS_REDIRECT_PREFIX}${shortCode}`);
 
     return new DeleteShortenedLinkDto(shortenedLink.shortCode, true);
   }
