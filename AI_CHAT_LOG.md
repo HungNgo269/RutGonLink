@@ -251,8 +251,7 @@ instead of showing in a dialog. can you make it a child route with a button to g
 
 ### What the AI Generated
 
-- It do apply a router feature, but there is some problem, it display page params when it not necessary.
--
+- It do apply a router feature
 
 ### What Was Accepted As-Is and Why
 
@@ -265,7 +264,9 @@ instead of showing in a dialog. can you make it a child route with a button to g
 ### Prompt Given to the AI 12
 
 ok, at the list page, can you modify UI look like this image instead of the old one. It do have filter, in this case instead of hidden active. i want it filter by expire. Currently search just add a debounce 500ms with LIKE search. And add a delete shortenlink api too.
+### What the AI Generated
 
+- It apply the filter and search logic. And the delete button, when click it, it show a alert().
 ### What Was Accepted As-Is and Why
 
 - The function work okay, the search and the delete shortenlink api is ok.
@@ -276,3 +277,16 @@ ok, at the list page, can you modify UI look like this image instead of the old 
 - the display info is no needed and duplicate -> remove it
 - the link is not clickable, instead it guide to details page -> i change z index;
 - search result box is not having loader -> add loader animation component to display.
+### Prompt Given to the AI 13
+
+aplly redis caching for reducing query at db for get shortenlink . instead of query at db, it should take a look at redis first, if it do have, use it.And incase same person create shorten link for the same source url. it should take a look at database: if the expire date are ok and the link already be created(by the same user) => return the same old shorten link.
+### What the AI Generated
+
+- Apply a check cache at redis first, if not found, query at db. if found, return it. And for the deduplication, it check at db first, if found, return it. if not found, create a new one.
+### What Was Accepted As-Is and Why
+
+- Accept the logic, it seems simple and clear.
+
+### What Was Modified and What Specifically Changed
+
+Nothing

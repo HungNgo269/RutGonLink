@@ -1,20 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Clock3, ExternalLink, Trash2 } from "lucide-react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  BarChart3,
+  CalendarDays,
+  Clock3,
+  ExternalLink,
+  Tag,
+  Trash2,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Pagination,
@@ -54,7 +50,15 @@ export function AnalyticsLinksTable({
   );
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  function openDetails(shortCode: string) {
+    router.push(`/analytics/${encodeURIComponent(shortCode)}`);
+  }
+
   function deleteLink(shortCode: string) {
+    if (!window.confirm("Delete this short link? This cannot be undone.")) {
+      return;
+    }
+
     setDeletingShortCode(shortCode);
     setDeleteError(null);
 
@@ -88,9 +92,6 @@ export function AnalyticsLinksTable({
           );
           const expiry = getExpiryDisplay(link.expiresAt);
           const destinationLabel = getDestinationLabel(link.destinationUrl);
-          const detailHref = `/analytics/${encodeURIComponent(link.shortCode)}`;
-          const isDeleting =
-            isPending && deletingShortCode === link.shortCode;
 
           return (
             <article
@@ -98,39 +99,30 @@ export function AnalyticsLinksTable({
               className="group rounded-lg border border-border-soft bg-surface p-5 shadow-app-panel transition-colors hover:border-accent/40 hover:bg-surface-cool"
             >
               <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                <div className="relative z-10 min-w-0 flex-1">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => openDetails(link.shortCode)}
+                >
                   <div className="flex items-start gap-4">
                     <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
                       <ExternalLink className="size-5" />
                     </div>
                     <div className="min-w-0">
-                      <Link
-                        href={detailHref}
-                        className="block break-all text-ui-lg font-ui-semibold text-content-heading hover:text-accent"
-                      >
+                      <h3 className="break-all text-ui-lg font-ui-semibold text-content-heading group-hover:text-accent">
                         {destinationLabel}
-                      </Link>
-                      <a
-                        href={shortenedUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-1 block break-all text-ui-sm font-ui-semibold text-accent hover:text-accent-strong"
-                      >
+                      </h3>
+                      <p className="mt-1 break-all text-ui-sm font-ui-semibold text-accent">
                         {shortenedUrl}
-                      </a>
-                      <a
-                        href={link.destinationUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-2 block max-w-4xl truncate text-ui-sm text-content-secondary hover:text-content-heading"
-                      >
+                      </p>
+                      <p className="mt-2 max-w-4xl truncate text-ui-sm text-content-secondary">
                         {link.destinationUrl}
-                      </a>
+                      </p>
                     </div>
                   </div>
-                </div>
+                </button>
 
-                <div className="relative z-20 flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
+                <div className="flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
                   <div className="rounded-2xl bg-surface-muted px-4 py-3 text-right">
                     <p className="text-ui-xs font-ui-semibold uppercase tracking-[0.16em] text-content-muted">
                       Clicks
@@ -139,41 +131,31 @@ export function AnalyticsLinksTable({
                       {formatNumber(link.totalClicks)}
                     </p>
                   </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        className="rounded-lg"
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="size-4" />
-                        {isDeleting ? "Deleting" : "Delete"}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete this short link?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will remove the short link and its tracking data.
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          variant="destructive"
-                          onClick={() => deleteLink(link.shortCode)}
-                        >
-                          Delete link
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="rounded-lg"
+                    disabled={isPending && deletingShortCode === link.shortCode}
+                    onClick={() => deleteLink(link.shortCode)}
+                  >
+                    <Trash2 className="size-4" />
+                    {deletingShortCode === link.shortCode
+                      ? "Deleting"
+                      : "Delete"}
+                  </Button>
                 </div>
               </div>
 
               <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-soft pt-4 text-ui-sm text-content-secondary">
+                <MetaItem
+                  icon={<BarChart3 className="size-4" />}
+                  label="Click data"
+                  value={
+                    link.lastClickedAt
+                      ? `Last click ${formatDateTime(link.lastClickedAt)}`
+                      : "No clicks yet"
+                  }
+                />
                 <MetaItem
                   icon={<CalendarDays className="size-4" />}
                   label="Created"
@@ -184,6 +166,12 @@ export function AnalyticsLinksTable({
                   label="Expires"
                   value={expiry.label}
                 />
+                <MetaItem
+                  icon={<Tag className="size-4" />}
+                  label="Tags"
+                  value="No tags"
+                />
+                <Badge variant={expiry.variant}>{expiry.badge}</Badge>
               </div>
             </article>
           );
@@ -292,10 +280,16 @@ function buildAnalyticsPageHref(
   return queryString ? `/analytics?${queryString}` : "/analytics";
 }
 
-function getExpiryDisplay(expiresAt: string | null): { label: string } {
+function getExpiryDisplay(expiresAt: string | null): {
+  label: string;
+  badge: string;
+  variant: "secondary" | "warning" | "outline";
+} {
   if (!expiresAt) {
     return {
       label: "Never expires",
+      badge: "No expiry",
+      variant: "secondary",
     };
   }
 
@@ -304,11 +298,15 @@ function getExpiryDisplay(expiresAt: string | null): { label: string } {
   if (expiryDate.getTime() <= Date.now()) {
     return {
       label: `Expired ${formatDateTime(expiresAt)}`,
+      badge: "Expired",
+      variant: "warning",
     };
   }
 
   return {
     label: `Expires ${formatDateTime(expiresAt)}`,
+    badge: "Expiring",
+    variant: "outline",
   };
 }
 

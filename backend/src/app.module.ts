@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
 import { ShortenUrlModule } from './shortenUrl/shorten-url.module';
 import { TrackingModule } from './tracking/tracking.module';
 
@@ -22,6 +23,7 @@ import { TrackingModule } from './tracking/tracking.module';
     ]),
     PrismaModule,
     LoggerModule,
+    RedisModule,
     AuthModule,
     AnalyticsModule,
     ShortenUrlModule,
