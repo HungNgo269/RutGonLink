@@ -73,6 +73,23 @@ export class ShortenUrlController {
       referrerUrl:
         httpRequest.get('referer') ?? httpRequest.get('referrer') ?? null,
       ipAddress: httpRequest.ip ?? null,
+      forwardedFor: httpRequest.get('x-forwarded-for') ?? null,
+      realIp:
+        httpRequest.get('cf-connecting-ip') ??
+        httpRequest.get('x-real-ip') ??
+        httpRequest.get('x-vercel-forwarded-for') ??
+        null,
+      requestUrl: httpRequest.originalUrl ?? httpRequest.url ?? null,
+      country:
+        httpRequest.get('x-vercel-ip-country') ??
+        httpRequest.get('cf-ipcountry') ??
+        httpRequest.get('cloudfront-viewer-country') ??
+        null,
+      city:
+        httpRequest.get('x-vercel-ip-city') ??
+        httpRequest.get('cf-ipcity') ??
+        httpRequest.get('x-appengine-city') ??
+        null,
       userAgent: httpRequest.headers['user-agent'] ?? null,
     });
 

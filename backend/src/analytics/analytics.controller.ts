@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request.type';
 import { AnalyticsService } from './analytics.service';
@@ -13,8 +13,13 @@ export class AnalyticsController {
   @Get('links')
   async getUserLinkAnalytics(
     @Req() httpRequest: AuthenticatedRequest,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ): Promise<UserLinkAnalyticsDto> {
-    return this.analyticsService.getUserLinkAnalytics(httpRequest.userId);
+    return this.analyticsService.getUserLinkAnalytics(httpRequest.userId, {
+      page: this.parsePositiveInteger(page, 1),
+      limit: this.parsePositiveInteger(limit, 10),
+    });
   }
 
   @UseGuards(AuthenticatedGuard)
@@ -27,5 +32,15 @@ export class AnalyticsController {
       shortCode,
       httpRequest.userId,
     );
+  }
+
+  private parsePositiveInteger(value: string | undefined, fallback: number) {
+    const parsedValue = Number(value);
+
+    if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+      return fallback;
+    }
+
+    return parsedValue;
   }
 }

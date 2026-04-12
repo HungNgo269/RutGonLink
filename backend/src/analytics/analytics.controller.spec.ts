@@ -72,14 +72,25 @@ describe('AnalyticsController', () => {
       ],
       totalLinks: 1,
       totalClicks: 2,
+      page: 2,
+      limit: 10,
+      totalPages: 3,
     });
 
-    const result = await controller.getUserLinkAnalytics({
-      userId: BigInt(7),
-    } as never);
+    const result = await controller.getUserLinkAnalytics(
+      {
+        userId: BigInt(7),
+      } as never,
+      '2',
+      '10',
+    );
 
     expect(analyticsService.getUserLinkAnalytics).toHaveBeenCalledWith(
       BigInt(7),
+      {
+        page: 2,
+        limit: 10,
+      },
     );
     expect(result.totalLinks).toBe(1);
   });

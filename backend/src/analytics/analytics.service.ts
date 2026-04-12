@@ -15,22 +15,41 @@ export class AnalyticsService {
 
   async getUserLinkAnalytics(
     authenticatedUserId: bigint,
+    pagination: LinkAnalyticsPagination = { page: 1, limit: 10 },
   ): Promise<UserLinkAnalyticsDto> {
-    const shortenedLinks = await this.prismaService.shortenedLink.findMany({
-      where: {
-        userId: authenticatedUserId,
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        shortCode: true,
-        destinationUrl: true,
-        createdAt: true,
-      },
-    });
+    const page = Math.max(1, pagination.page);
+    const limit = Math.min(Math.max(1, pagination.limit), 100);
+    const where = {
+      userId: authenticatedUserId,
+    };
+    const [totalLinks, totalClicks, shortenedLinks] = await Promise.all([
+      this.prismaService.shortenedLink.count({ where }),
+      this.prismaService.clickEvent.count({ where }),
+      this.prismaService.shortenedLink.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          shortCode: true,
+          destinationUrl: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalLinks / limit);
 
     if (shortenedLinks.length === 0) {
-      return new UserLinkAnalyticsDto([], 0, 0);
+      return new UserLinkAnalyticsDto(
+        [],
+        totalLinks,
+        totalClicks,
+        page,
+        limit,
+        totalPages,
+      );
     }
 
     const clickAggregates = await this.prismaService.clickEvent.groupBy({
@@ -70,8 +89,11 @@ export class AnalyticsService {
 
     return new UserLinkAnalyticsDto(
       analyticsItems,
-      analyticsItems.length,
-      analyticsItems.reduce((sum, item) => sum + item.totalClicks, 0),
+      totalLinks,
+      totalClicks,
+      page,
+      limit,
+      totalPages,
     );
   }
 
@@ -103,6 +125,7 @@ export class AnalyticsService {
       this.prismaService.clickEvent.findMany({
         where: clickWhere,
         orderBy: { clickedAt: 'desc' },
+        take: 50,
         select: {
           clickedAt: true,
           referrerUrl: true,
@@ -150,3 +173,8 @@ export class AnalyticsService {
     );
   }
 }
+
+export type LinkAnalyticsPagination = {
+  page: number;
+  limit: number;
+};

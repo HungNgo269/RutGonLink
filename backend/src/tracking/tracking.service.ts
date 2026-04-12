@@ -18,6 +18,11 @@ export class TrackingService {
       return;
     }
 
+    const utmParameters = this.extractUtmParameters(
+      clickRequest?.requestUrl ?? null,
+      shortenedLink.destinationUrl,
+    );
+
     await this.prismaService.clickEvent.create({
       data: {
         id: this.createClickEventId(),
@@ -30,10 +35,17 @@ export class TrackingService {
         referrerDomain: this.extractReferrerDomain(
           clickRequest?.referrerUrl ?? null,
         ),
+        utmSource: utmParameters.utmSource,
+        utmMedium: utmParameters.utmMedium,
+        utmCampaign: utmParameters.utmCampaign,
+        utmTerm: utmParameters.utmTerm,
+        utmContent: utmParameters.utmContent,
+        country: this.normalizeLocationValue(clickRequest?.country ?? null),
+        city: this.normalizeLocationValue(clickRequest?.city ?? null),
         deviceType: this.detectDeviceType(clickRequest?.userAgent ?? null),
         browser: this.detectBrowser(clickRequest?.userAgent ?? null),
         os: this.detectOperatingSystem(clickRequest?.userAgent ?? null),
-        ipAddress: this.normalizeIpAddress(clickRequest?.ipAddress ?? null),
+        ipAddress: this.resolveClientIpAddress(clickRequest),
       },
     });
   }
@@ -127,8 +139,112 @@ export class TrackingService {
     }
   }
 
+  private extractUtmParameters(
+    requestUrl: string | null,
+    destinationUrl: string,
+  ): UtmParameters {
+    const request = this.parseUrl(requestUrl, 'http://short.local');
+    const destination = this.parseUrl(destinationUrl);
+
+    return {
+      utmSource: this.getSearchParam(request, destination, 'utm_source', 100),
+      utmMedium: this.getSearchParam(request, destination, 'utm_medium', 100),
+      utmCampaign: this.getSearchParam(
+        request,
+        destination,
+        'utm_campaign',
+        150,
+      ),
+      utmTerm: this.getSearchParam(request, destination, 'utm_term', 150),
+      utmContent: this.getSearchParam(request, destination, 'utm_content', 150),
+    };
+  }
+
+  private getSearchParam(
+    request: URL | null,
+    destination: URL | null,
+    name: string,
+    maxLength: number,
+  ): string | null {
+    return (
+      this.normalizeLimitedValue(
+        request?.searchParams.get(name) ?? null,
+        maxLength,
+      ) ??
+      this.normalizeLimitedValue(
+        destination?.searchParams.get(name) ?? null,
+        maxLength,
+      )
+    );
+  }
+
+  private parseUrl(url: string | null, baseUrl?: string): URL | null {
+    if (!url) {
+      return null;
+    }
+
+    try {
+      return new URL(url, baseUrl);
+    } catch {
+      return null;
+    }
+  }
+
+  private resolveClientIpAddress(
+    clickRequest: ClickTrackingRequest | null,
+  ): string | null {
+    return this.normalizeIpAddress(
+      this.getFirstForwardedIp(clickRequest?.forwardedFor ?? null) ??
+        clickRequest?.realIp ??
+        clickRequest?.ipAddress ??
+        null,
+    );
+  }
+
+  private getFirstForwardedIp(forwardedFor: string | null): string | null {
+    return (
+      forwardedFor
+        ?.split(',')
+        .map((ipAddress) => ipAddress.trim())
+        .find(Boolean) ?? null
+    );
+  }
+
   private normalizeIpAddress(ipAddress: string | null): string | null {
-    return ipAddress?.trim() || null;
+    const normalizedIpAddress = ipAddress?.trim().replace(/^::ffff:/i, '');
+
+    return this.normalizeLimitedValue(normalizedIpAddress ?? null, 45);
+  }
+
+  private normalizeLocationValue(value: string | null): string | null {
+    const decodedValue = this.decodeHeaderValue(value);
+
+    return this.normalizeLimitedValue(decodedValue, 100);
+  }
+
+  private decodeHeaderValue(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    try {
+      return decodeURIComponent(value.replace(/\+/g, ' '));
+    } catch {
+      return value;
+    }
+  }
+
+  private normalizeLimitedValue(
+    value: string | null,
+    maxLength: number,
+  ): string | null {
+    const normalizedValue = value?.trim();
+
+    if (!normalizedValue) {
+      return null;
+    }
+
+    return normalizedValue.slice(0, maxLength);
   }
 
   private detectDeviceType(userAgent: string | null): DeviceType {
@@ -219,6 +335,11 @@ export class TrackingService {
 export type ClickTrackingRequest = {
   referrerUrl: string | null;
   ipAddress: string | null;
+  forwardedFor: string | null;
+  realIp: string | null;
+  requestUrl: string | null;
+  country: string | null;
+  city: string | null;
   userAgent: string | null;
 };
 
@@ -226,4 +347,13 @@ export type RedirectTrackingLink = {
   id: bigint;
   userId: bigint | null;
   organizationId: bigint | null;
+  destinationUrl: string;
+};
+
+type UtmParameters = {
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmTerm: string | null;
+  utmContent: string | null;
 };

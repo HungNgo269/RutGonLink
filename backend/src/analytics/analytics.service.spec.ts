@@ -6,6 +6,7 @@ describe('AnalyticsService', () => {
   let service: AnalyticsService;
   let prismaService: {
     shortenedLink: {
+      count: jest.Mock;
       findMany: jest.Mock;
       findUnique: jest.Mock;
     };
@@ -19,6 +20,7 @@ describe('AnalyticsService', () => {
   beforeEach(() => {
     prismaService = {
       shortenedLink: {
+        count: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
       },
@@ -33,6 +35,7 @@ describe('AnalyticsService', () => {
   });
 
   it('when loading analytics for a user, returns each owned link with summary metrics', async () => {
+    prismaService.shortenedLink.count.mockResolvedValue(12);
     prismaService.shortenedLink.findMany.mockResolvedValue([
       {
         id: BigInt(12),
@@ -47,6 +50,7 @@ describe('AnalyticsService', () => {
         createdAt: new Date('2026-04-08T10:00:00.000Z'),
       },
     ]);
+    prismaService.clickEvent.count.mockResolvedValue(9);
     prismaService.clickEvent.groupBy.mockResolvedValue([
       {
         linkId: BigInt(11),
@@ -61,7 +65,7 @@ describe('AnalyticsService', () => {
     ]);
 
     await expect(
-      service.getUserLinkAnalytics(BigInt(7)),
+      service.getUserLinkAnalytics(BigInt(7), { page: 2, limit: 10 }),
     ).resolves.toMatchObject({
       links: [
         {
@@ -81,18 +85,32 @@ describe('AnalyticsService', () => {
           lastClickedAt: '2026-04-10T12:30:00.000Z',
         },
       ],
-      totalLinks: 2,
-      totalClicks: 4,
+      totalLinks: 12,
+      totalClicks: 9,
+      page: 2,
+      limit: 10,
+      totalPages: 2,
     });
+    expect(prismaService.shortenedLink.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 10,
+        take: 10,
+      }),
+    );
   });
 
   it('when loading analytics for a user with no links, returns an empty summary', async () => {
+    prismaService.shortenedLink.count.mockResolvedValue(0);
     prismaService.shortenedLink.findMany.mockResolvedValue([]);
+    prismaService.clickEvent.count.mockResolvedValue(0);
 
     await expect(service.getUserLinkAnalytics(BigInt(7))).resolves.toEqual({
       links: [],
       totalLinks: 0,
       totalClicks: 0,
+      page: 1,
+      limit: 10,
+      totalPages: 0,
     });
     expect(prismaService.clickEvent.groupBy).not.toHaveBeenCalled();
   });
@@ -154,6 +172,12 @@ describe('AnalyticsService', () => {
         },
       ],
     });
+    expect(prismaService.clickEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { clickedAt: 'desc' },
+        take: 50,
+      }),
+    );
   });
 
   it('when loading analytics details for a non-owned link, rejects access', async () => {

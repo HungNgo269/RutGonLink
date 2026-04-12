@@ -145,17 +145,21 @@ describe('AuthService', () => {
     });
 
     const result = await service.getAuthenticatedUser(BigInt(7));
+    const [findUniqueArguments] = findUniqueMock.mock.calls[0] as [
+      {
+        where: { id: bigint };
+        select: {
+          id: true;
+          email: true;
+          fullName: true;
+          tier: true;
+          isActive: true;
+        };
+      },
+    ];
 
-    expect(findUniqueMock).toHaveBeenCalledWith({
-      where: { id: BigInt(7) },
-      select: expect.objectContaining({
-        id: true,
-        email: true,
-        fullName: true,
-        tier: true,
-        isActive: true,
-      }),
-    });
+    expect(findUniqueArguments.where).toEqual({ id: BigInt(7) });
+    expect(findUniqueArguments.select.isActive).toBe(true);
     expect(result.user.email).toBe('user@example.com');
   });
 

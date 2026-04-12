@@ -20,9 +20,10 @@ export class AuthenticatedGuard implements CanActivate {
     const httpContext = context.switchToHttp();
     const request = httpContext.getRequest<AuthenticatedRequest>();
 
-    const authentication = await this.authSessionService.getAuthenticationResult(
-      request.headers.cookie,
-    );
+    const authentication =
+      await this.authSessionService.getAuthenticationResult(
+        request.headers.cookie,
+      );
 
     if (!authentication) {
       throw new UnauthorizedException('Authentication is required.');

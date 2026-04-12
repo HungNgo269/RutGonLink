@@ -185,8 +185,20 @@ describe('ShortenUrlController', () => {
     await controller.redirect(
       'abc1234',
       {
-        get: jest.fn().mockReturnValue('https://referrer.example/path'),
+        get: jest.fn((header: string) => {
+          const headers: Record<string, string> = {
+            referer: 'https://referrer.example/path',
+            'x-forwarded-for': '203.0.113.10, 10.0.0.1',
+            'x-real-ip': '198.51.100.8',
+            'x-vercel-ip-country': 'VN',
+            'x-vercel-ip-city': 'Ho%20Chi%20Minh%20City',
+          };
+
+          return headers[header.toLowerCase()] ?? undefined;
+        }),
         ip: '127.0.0.1',
+        originalUrl:
+          '/abc1234?utm_source=newsletter&utm_medium=email&utm_campaign=spring-launch',
         headers: {
           'user-agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/123.0',
@@ -203,6 +215,12 @@ describe('ShortenUrlController', () => {
       expect.objectContaining({
         referrerUrl: 'https://referrer.example/path',
         ipAddress: '127.0.0.1',
+        forwardedFor: '203.0.113.10, 10.0.0.1',
+        realIp: '198.51.100.8',
+        requestUrl:
+          '/abc1234?utm_source=newsletter&utm_medium=email&utm_campaign=spring-launch',
+        country: 'VN',
+        city: 'Ho%20Chi%20Minh%20City',
       }),
     );
     expect(response.redirect).toHaveBeenCalledWith(302, 'https://example.com');
