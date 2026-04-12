@@ -101,7 +101,7 @@ export function ShortenUrlForm() {
                   className="text-accent underline underline-offset-4"
                   href={safeState.data.shortenedUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener"
                 >
                   {safeState.data.shortenedUrl}
                 </a>

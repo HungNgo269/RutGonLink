@@ -66,7 +66,7 @@ export function LinkDetailDashboard({
                 <a
                   href={shortenedUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener"
                   className="mt-2 inline-flex max-w-full items-center gap-2 break-all text-ui-sm font-ui-semibold text-accent hover:text-accent-strong"
                 >
                   <ExternalLink className="size-4 shrink-0" />
