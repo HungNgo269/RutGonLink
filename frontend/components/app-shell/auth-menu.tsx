@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { useTransition } from "react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ type CurrentUser = AuthResponse["user"];
 
 export function AuthMenu({ user }: { user: CurrentUser }) {
   const initial = user.fullName.trim().charAt(0).toUpperCase() || "U";
+  const [isPending, startTransition] = useTransition();
 
   return (
     <DropdownMenu>
@@ -49,14 +51,19 @@ export function AuthMenu({ user }: { user: CurrentUser }) {
           <p className="mt-1 text-ui-xs text-content-muted">{user.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <form action={logout}>
-          <DropdownMenuItem
-            asChild
-            className="w-full text-danger focus:text-danger-strong hover:!bg-danger-soft"
-          >
-            <button type="submit">Log out</button>
-          </DropdownMenuItem>
-        </form>
+        <DropdownMenuItem
+          disabled={isPending}
+          onSelect={(event) => {
+            event.preventDefault();
+            startTransition(() => {
+              void logout();
+            });
+          }}
+          className="w-full text-danger focus:text-danger-strong hover:!bg-danger-soft"
+        >
+          <LogOut />
+          {isPending ? "Logging out..." : "Log out"}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

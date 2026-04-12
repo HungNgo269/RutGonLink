@@ -23,22 +23,16 @@ export default function AppPage() {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-lg border border-border-soft bg-surface-muted px-3 py-2 text-ui-sm font-ui-semibold text-accent">
-                <Link2 className="size-4" />
                 Short link
               </div>
               <h1 className="text-heading-md font-ui-semibold tracking-tight text-content-heading md:text-heading-lg">
                 Create a short link
               </h1>
-              <div className="flex items-center gap-2 text-ui-sm text-content-secondary">
+              {/* <div className="flex items-center gap-2 text-ui-sm text-content-secondary">
                 <span>Domain: rutgon.link</span>
                 <Lock className="size-4 text-content-muted" />
-              </div>
+              </div> */}
             </div>
-
-            <p className="max-w-sm text-ui-sm leading-7 text-content-secondary">
-              Paste one long URL, create a short link, then review visits in
-              analytics when traffic arrives.
-            </p>
           </div>
 
           <div className="mt-8">
@@ -89,7 +83,8 @@ export default function AppPage() {
             Link steps
           </h2>
           <p className="mt-2 text-ui-sm text-content-secondary">
-            The workspace stays focused on creating links and reading click data.
+            The workspace stays focused on creating links and reading click
+            data.
           </p>
 
           <div className="mt-6 grid gap-3">
@@ -148,9 +143,6 @@ export default function AppPage() {
                   <div className="mt-5 h-3 overflow-hidden rounded-lg bg-surface">
                     <div className="h-full w-0 rounded-lg bg-accent" />
                   </div>
-                  <p className="mt-3 text-right text-ui-sm font-ui-semibold text-content-secondary">
-                    0 clicks recorded
-                  </p>
                 </div>
               </div>
             </div>

@@ -4,6 +4,14 @@ import { useEffect, useState, useTransition } from "react";
 import { Filter, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { LinkExpiryFilter } from "@/features/analytics/lib/get-user-link-analytics";
 
 const expiryFilters: Array<{
@@ -76,23 +84,32 @@ export function AnalyticsLinkFilters({
           />
         </label>
 
-        <label className="flex h-11 items-center gap-3 rounded-lg border border-border-soft bg-surface px-4 text-ui-sm font-ui-semibold text-content-heading">
+        <div className="flex h-11 items-center gap-3 rounded-lg border border-border-soft bg-surface px-4 text-ui-sm font-ui-semibold text-content-heading">
           <Filter className="size-4" />
-          <span>Filter by expiry</span>
-          <select
+          <span id="expiry-filter-label">Filter by expiry</span>
+          <Select
             value={expires}
-            onChange={(event) =>
-              updateExpiryFilter(event.target.value as LinkExpiryFilter)
+            onValueChange={(value) =>
+              updateExpiryFilter(value as LinkExpiryFilter)
             }
-            className="bg-transparent text-content-primary outline-none"
           >
-            {expiryFilters.map((filter) => (
-              <option key={filter.value} value={filter.value}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger
+              aria-labelledby="expiry-filter-label"
+              className="h-8 border-0 bg-transparent px-0 text-content-primary shadow-none focus-visible:ring-0"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end" position="popper">
+              <SelectGroup>
+                {expiryFilters.map((filter) => (
+                  <SelectItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {filtersActive ? (

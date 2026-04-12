@@ -3,22 +3,43 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { getApiGlobalPrefix } from './../src/http-api.config';
+
+type StoredShortenedLink = {
+  id: bigint;
+  shortCode: string;
+  destinationUrl: string;
+  isActive: boolean;
+  expiresAt: Date | null;
+};
+
+type CreateShortenedLinkArgs = {
+  data: Pick<StoredShortenedLink, 'id' | 'shortCode' | 'destinationUrl'>;
+};
+
+type FindUniqueShortenedLinkArgs = {
+  where: Pick<StoredShortenedLink, 'shortCode'>;
+  select?: Partial<Record<keyof StoredShortenedLink, boolean>>;
+};
+
+type ShortenedUrlResponse = {
+  originalUrl: string;
+  shortCode: string;
+  shortenedUrl: string;
+};
+
+type ErrorResponse = {
+  response: {
+    message: string;
+  };
+};
 
 jest.mock('../src/prisma/prisma.service', () => ({
   PrismaService: class PrismaService {
-    private readonly links = new Map<
-      string,
-      {
-        id: bigint;
-        shortCode: string;
-        destinationUrl: string;
-        isActive: boolean;
-        expiresAt: Date | null;
-      }
-    >();
+    private readonly links = new Map<string, StoredShortenedLink>();
 
     shortenedLink = {
-      create: jest.fn(({ data }) => {
+      create: jest.fn(({ data }: CreateShortenedLinkArgs) => {
         this.links.set(data.shortCode, {
           id: data.id,
           shortCode: data.shortCode,
@@ -29,7 +50,7 @@ jest.mock('../src/prisma/prisma.service', () => ({
 
         return Promise.resolve(data);
       }),
-      findUnique: jest.fn(({ where, select }) => {
+      findUnique: jest.fn(({ where, select }: FindUniqueShortenedLinkArgs) => {
         const link = this.links.get(where.shortCode) ?? null;
 
         if (!link) {
@@ -41,7 +62,10 @@ jest.mock('../src/prisma/prisma.service', () => ({
         }
 
         const selected = Object.fromEntries(
-          Object.entries(select).map(([key]) => [key, link[key]]),
+          Object.entries(select).map(([key]) => [
+            key,
+            link[key as keyof StoredShortenedLink],
+          ]),
         );
 
         return Promise.resolve(selected);
@@ -50,8 +74,17 @@ jest.mock('../src/prisma/prisma.service', () => ({
   },
 }));
 
+jest.mock('../src/redis/redis.service', () => ({
+  RedisService: class RedisService {
+    get = jest.fn().mockResolvedValue(null);
+    set = jest.fn().mockResolvedValue(undefined);
+    del = jest.fn().mockResolvedValue(undefined);
+  },
+}));
+
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
+  const apiPrefix = `/${getApiGlobalPrefix()}`;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -59,55 +92,61 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix(getApiGlobalPrefix());
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/v1/app (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get(apiPrefix)
       .expect(200)
       .expect('Hello World!');
   });
 
-  it('/shorten-url (POST)', () => {
+  it('/v1/app/shorten-url (POST)', () => {
     return request(app.getHttpServer())
-      .post('/shorten-url')
+      .post(`${apiPrefix}/shorten-url`)
       .send({
         url: 'https://example.com/very/long/link',
       })
       .expect(201)
-      .expect(({ body }) => {
+      .expect((response) => {
+        const body = response.body as ShortenedUrlResponse;
+
         expect(body.originalUrl).toBe('https://example.com/very/long/link');
         expect(body.shortCode).toMatch(/^[A-Za-z0-9_-]{7}$/);
         expect(body.shortenedUrl).toMatch(
-          /^http:\/\/127\.0\.0\.1:\d+\/[A-Za-z0-9_-]{7}$/,
+          /^http:\/\/127\.0\.0\.1:\d+\/v1\/app\/[A-Za-z0-9_-]{7}$/,
         );
       });
   });
 
-  it('/:shortCode (GET) redirects to the original destination', async () => {
+  it('/v1/app/:shortCode (GET) redirects to the original destination', async () => {
     const createResponse = await request(app.getHttpServer())
-      .post('/shorten-url')
+      .post(`${apiPrefix}/shorten-url`)
       .send({
         url: 'https://example.com/very/long/link',
       })
       .expect(201);
+    const createResponseBody = createResponse.body as ShortenedUrlResponse;
 
     await request(app.getHttpServer())
-      .get(`/${createResponse.body.shortCode}`)
+      .get(`${apiPrefix}/${createResponseBody.shortCode}`)
       .expect(302)
       .expect('Location', 'https://example.com/very/long/link');
   });
 
-  it('/shorten-url (POST) rejects invalid url', () => {
+  it('/v1/app/shorten-url (POST) rejects invalid url', () => {
     return request(app.getHttpServer())
-      .post('/shorten-url')
+      .post(`${apiPrefix}/shorten-url`)
       .send({
         url: 'invalid-url',
       })
       .expect(400)
-      .expect(({ body }) => {
-        expect(body.message).toBe('Invalid URL format.');
+      .expect((response) => {
+        const body = response.body as ErrorResponse;
+
+        expect(body.response.message).toBe('Invalid URL format.');
       });
   });
 

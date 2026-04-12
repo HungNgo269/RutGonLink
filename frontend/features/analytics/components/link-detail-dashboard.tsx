@@ -9,11 +9,7 @@ import {
   LinearScale,
   Tooltip,
 } from "chart.js";
-import {
-  CalendarDays,
-  ExternalLink,
-  Link2,
-} from "lucide-react";
+import { CalendarDays, ExternalLink, Link2 } from "lucide-react";
 import { Bar, Doughnut } from "react-chartjs-2";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { LinkAnalyticsDetail } from "@/features/analytics/schemas/link-analytics-detail.schema";
+import { MetaItem } from "./analytics-links-table";
 
 ChartJS.register(
   ArcElement,
@@ -65,39 +62,35 @@ export function LinkDetailDashboard({
                 </h3>
                 <Badge variant="secondary">Active</Badge>
               </div>
-              <a
-                href={shortenedUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex max-w-full items-center gap-2 break-all text-ui-sm font-ui-semibold text-accent hover:text-accent-strong"
-              >
-                <ExternalLink className="size-4 shrink-0" />
-                {shortenedUrl}
-              </a>
-              <a
-                href={detail.destinationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex max-w-full items-center gap-2 text-ui-sm text-content-secondary hover:text-accent"
-              >
-                <ExternalLink className="size-4 shrink-0" />
-                <span className="truncate">{detail.destinationUrl}</span>
-              </a>
-            </div>
-          </div>
+              <div>
+                <a
+                  href={shortenedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex max-w-full items-center gap-2 break-all text-ui-sm font-ui-semibold text-accent hover:text-accent-strong"
+                >
+                  <ExternalLink className="size-4 shrink-0" />
+                  {shortenedUrl}
+                </a>
+              </div>
+              <div>
+                <a
+                  href={detail.destinationUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex max-w-full items-center gap-2 text-ui-sm text-content-secondary hover:text-accent"
+                >
+                  <span className="truncate">{detail.destinationUrl}</span>
+                </a>
+              </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 md:min-w-[24rem]">
-            <SummaryStat
-              label="Total clicks"
-              value={formatNumber(detail.totalClicks)}
-            />
-            <SummaryStat
-              label="Created"
-              value={formatDateTime(detail.createdAt)}
-              icon={<CalendarDays className="size-4" />}
-            />
-            <SummaryStat label="Top source" value={topReferrer} />
-            <SummaryStat label="Top device" value={topDevice} />
+              <div className="flex flex-row items-center w-full justify-items-start">
+                <MetaItem value={formatDateTime(detail.createdAt)} />
+                {/* <MetaItem label="Total click:" value={detail.totalClicks} />
+                <MetaItem label="Top source:" value={topReferrer} />
+                <MetaItem label="Total device:" value={topDevice} /> */}
+              </div>
+            </div>
           </div>
         </div>
       </Card>
@@ -106,9 +99,10 @@ export function LinkDetailDashboard({
         <CardHeader>
           <div>
             <CardTitle>Engagements over time</CardTitle>
-            <CardDescription>Clicks recorded over the last 14 days.</CardDescription>
+            <CardDescription>
+              Clicks recorded over the last 14 days.
+            </CardDescription>
           </div>
-          <Badge variant="outline">{formatNumber(detail.totalClicks)} clicks</Badge>
         </CardHeader>
         <CardContent>
           <div className="h-64">
@@ -307,7 +301,9 @@ function BreakdownList({ items }: { items: BreakdownItem[] }) {
           <div className="flex min-w-0 items-center gap-2">
             <span
               className="size-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: chartColors[index % chartColors.length] }}
+              style={{
+                backgroundColor: chartColors[index % chartColors.length],
+              }}
             />
             <span className="truncate text-ui-sm text-content-primary">
               {item.label}

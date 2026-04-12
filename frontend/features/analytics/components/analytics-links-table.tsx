@@ -79,7 +79,10 @@ export function AnalyticsLinksTable({
   return (
     <>
       {deleteError ? (
-        <div className="mt-5 rounded-lg bg-danger-soft p-4 text-ui-sm text-danger" role="alert">
+        <div
+          className="mt-5 rounded-lg bg-danger-soft p-4 text-ui-sm text-danger"
+          role="alert"
+        >
           {deleteError}
         </div>
       ) : null}
@@ -165,12 +168,12 @@ export function AnalyticsLinksTable({
                   label="Expires"
                   value={expiry.label}
                 />
-                <MetaItem
+                {/* <MetaItem
                   icon={<Tag className="size-4" />}
                   label="Tags"
                   value="No tags"
                 />
-                <Badge variant={expiry.variant}>{expiry.badge}</Badge>
+                <Badge variant={expiry.variant}>{expiry.badge}</Badge> */}
               </div>
             </article>
           );
@@ -188,20 +191,20 @@ export function AnalyticsLinksTable({
   );
 }
 
-function MetaItem({
+export function MetaItem({
   icon,
   label,
   value,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
+  icon?: React.ReactNode;
+  label?: string | number;
+  value: string | number;
 }) {
   return (
     <div className="inline-flex min-w-0 items-center gap-2">
-      <span className="text-content-muted">{icon}</span>
+      <span className="text-content-muted">{icon ?? null}</span>
       <span className="font-ui-semibold text-content-heading">{label}</span>
-      <span className="truncate">{value}</span>
+      <span className="truncate">{value ?? 0}</span>
     </div>
   );
 }

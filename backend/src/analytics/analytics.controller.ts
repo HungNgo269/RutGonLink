@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthenticatedGuard } from '../auth/guards/authenticated.guard';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request.type';
 import { AnalyticsService, type LinkExpiryFilter } from './analytics.service';
@@ -15,10 +16,13 @@ import { LinkAnalyticsDetailDto } from './dto/link-analytics-detail.dto';
 import { UserLinkAnalyticsDto } from './dto/user-link-analytics.dto';
 
 @Controller('analytics')
+@ApiTags('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: 'List analytics for the current user links.' })
+  @ApiOkResponse({ type: UserLinkAnalyticsDto })
   @Get('links')
   async getUserLinkAnalytics(
     @Req() httpRequest: AuthenticatedRequest,
@@ -36,6 +40,8 @@ export class AnalyticsController {
   }
 
   @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: 'Read analytics details for one short link.' })
+  @ApiOkResponse({ type: LinkAnalyticsDetailDto })
   @Get('links/:shortCode')
   async getLinkAnalyticsDetail(
     @Param('shortCode') shortCode: string,
@@ -48,6 +54,8 @@ export class AnalyticsController {
   }
 
   @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: 'Delete one owned short link.' })
+  @ApiOkResponse({ type: DeleteShortenedLinkDto })
   @Delete('links/:shortCode')
   async deleteShortenedLink(
     @Param('shortCode') shortCode: string,

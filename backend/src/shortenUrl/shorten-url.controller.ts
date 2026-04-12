@@ -8,6 +8,12 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiFoundResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthCookieService } from '../auth/auth-cookie.service';
 import { AuthSessionService } from '../auth/auth-session.service';
@@ -18,6 +24,7 @@ import { ShortenedUrlDto } from './dto/shortened-url.dto';
 import { ShortenUrlService } from './shorten-url.service';
 
 @Controller()
+@ApiTags('short links')
 export class ShortenUrlController {
   constructor(
     private readonly shortenUrlService: ShortenUrlService,
@@ -27,6 +34,8 @@ export class ShortenUrlController {
   ) {}
 
   @Post('shorten-url')
+  @ApiOperation({ summary: 'Create a shortened URL.' })
+  @ApiCreatedResponse({ type: ShortenedUrlDto })
   async create(
     @Body() request: CreateShortenUrlDto,
     @BaseUrl() baseUrl: string,
@@ -61,6 +70,10 @@ export class ShortenUrlController {
   }
 
   @Get(':shortCode')
+  @ApiOperation({ summary: 'Redirect a short code to its destination URL.' })
+  @ApiFoundResponse({
+    description: 'Redirects to the original destination URL.',
+  })
   async redirect(
     @Param('shortCode') shortCode: string,
     @Req() httpRequest: Request,

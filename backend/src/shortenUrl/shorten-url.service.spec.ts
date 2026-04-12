@@ -63,8 +63,11 @@ describe('ShortenUrlService', () => {
       });
       expect(prismaService.shortenedLink.findFirst).not.toHaveBeenCalled();
       expect(prismaService.shortenedLink.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
+        expect.objectContaining<{ data: unknown }>({
+          data: expect.objectContaining<{
+            shortCode: string;
+            destinationUrl: string;
+          }>({
             shortCode: 'abc1234',
             destinationUrl: 'https://example.com/articles/nest',
           }),

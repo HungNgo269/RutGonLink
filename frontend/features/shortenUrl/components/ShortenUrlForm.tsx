@@ -45,7 +45,7 @@ export function ShortenUrlForm() {
   return (
     <div className="space-y-5">
       <form className="space-y-5" onSubmit={onSubmit}>
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end">
+        <div className="flex flex-col gap-5 xl:flex-row  items-center justify-center">
           <div className="min-w-0 flex-1 space-y-2">
             <label
               className="text-ui-sm font-ui-semibold text-content-strong"
@@ -68,7 +68,7 @@ export function ShortenUrlForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-14 items-center justify-center rounded-lg bg-cta px-6 text-ui-sm font-ui-semibold text-content-heading shadow-app-panel hover:bg-cta-strong hover:text-content-inverted disabled:cursor-not-allowed disabled:bg-disabled disabled:text-content-inverted xl:min-w-52"
+            className="inline-flex min-h-[54px] items-center justify-center rounded-lg bg-cta px-6 text-ui-sm font-ui-semibold text-content-heading shadow-app-panel hover:bg-cta-strong hover:text-content-inverted disabled:cursor-not-allowed disabled:bg-disabled disabled:text-content-inverted xl:min-w-52"
           >
             {isPending ? "Creating short link..." : "Create your short link"}
           </button>
@@ -77,9 +77,7 @@ export function ShortenUrlForm() {
 
       <div className="rounded-lg bg-teal-soft px-4 py-4 text-ui-sm text-teal">
         <p
-          className={
-            safeState.status === "error" ? "text-danger" : "text-teal"
-          }
+          className={safeState.status === "error" ? "text-danger" : "text-teal"}
           role={safeState.status === "error" ? "alert" : undefined}
         >
           {safeState.message ??
@@ -89,11 +87,15 @@ export function ShortenUrlForm() {
         {safeState.data ? (
           <dl className="mt-4 grid gap-3 rounded-lg bg-surface/90 p-4 text-ui-sm text-content-primary sm:grid-cols-2">
             <div>
-              <dt className="font-ui-semibold text-content-strong">Original URL</dt>
+              <dt className="font-ui-semibold text-content-strong">
+                Original URL
+              </dt>
               <dd className="mt-1 break-all">{safeState.data.originalUrl}</dd>
             </div>
             <div>
-              <dt className="font-ui-semibold text-content-strong">Short link</dt>
+              <dt className="font-ui-semibold text-content-strong">
+                Short link
+              </dt>
               <dd className="mt-1 break-all">
                 <a
                   className="text-accent underline underline-offset-4"

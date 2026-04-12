@@ -1,5 +1,11 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { AuthenticatedUserDto } from './authenticated-user.dto';
 
 export class AuthResultDto {
-  constructor(public readonly user: AuthenticatedUserDto) {}
+  @ApiProperty({ type: AuthenticatedUserDto })
+  public readonly user: AuthenticatedUserDto;
+
+  constructor(user: AuthenticatedUserDto) {
+    this.user = user;
+  }
 }

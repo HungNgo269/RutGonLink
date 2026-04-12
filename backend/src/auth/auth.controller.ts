@@ -8,6 +8,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthCookieService } from './auth-cookie.service';
@@ -20,6 +26,7 @@ import { GuestOnlyGuard } from './guards/guest-only.guard';
 import type { AuthenticatedRequest } from './types/authenticated-request.type';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -28,6 +35,10 @@ export class AuthController {
 
   @UseGuards(GuestOnlyGuard)
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Create an account and start an authenticated session.',
+  })
+  @ApiCreatedResponse({ type: AuthResultDto })
   @Post('register')
   async register(
     @Body() request: RegisterDto,
@@ -48,6 +59,8 @@ export class AuthController {
 
   @UseGuards(GuestOnlyGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Sign in and set authentication cookies.' })
+  @ApiOkResponse({ type: AuthResultDto })
   @HttpCode(200)
   @Post('login')
   async login(
@@ -68,6 +81,8 @@ export class AuthController {
   }
 
   @UseGuards(AuthenticatedGuard)
+  @ApiOperation({ summary: 'Read the current authenticated user.' })
+  @ApiOkResponse({ type: AuthResultDto })
   @Get('me')
   async me(@Req() request: AuthenticatedRequest): Promise<AuthResultDto> {
     return this.authService.getAuthenticatedUser(request.userId);
@@ -75,6 +90,8 @@ export class AuthController {
 
   @UseGuards(AuthenticatedGuard)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Sign out and clear authentication cookies.' })
+  @ApiOkResponse({ schema: { example: { success: true } } })
   @HttpCode(200)
   @Post('logout')
   async logout(
