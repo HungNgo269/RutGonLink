@@ -1,30 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import {
-  BarChart3,
-  FileText,
-  Home,
-  Link2,
-  Plus,
-  QrCode,
-  Settings,
-} from "lucide-react";
+import { BarChart3, Home } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   primaryNavItems,
-  secondaryNavItems,
   type AppNavItem,
 } from "@/components/app-shell/navigation";
-import { Button } from "@/components/ui/button";
 
 const iconMap = {
   analytics: BarChart3,
   home: Home,
-  links: Link2,
-  pages: FileText,
-  qr: QrCode,
-  settings: Settings,
 } as const;
 
 function isActivePath(pathname: string, href: string) {
@@ -51,22 +37,7 @@ function NavLink({ item }: { item: AppNavItem }) {
     >
       <Icon className="size-5 shrink-0" />
       <span>{item.label}</span>
-      {item.badge ? (
-        <span className="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-ui-2xs font-ui-bold text-accent">
-          {item.badge}
-        </span>
-      ) : null}
     </Link>
-  );
-}
-
-function NavSection({ items }: { items: AppNavItem[] }) {
-  return (
-    <nav className="space-y-1">
-      {items.map((item) => (
-        <NavLink key={item.href} item={item} />
-      ))}
-    </nav>
   );
 }
 
@@ -83,20 +54,13 @@ export function SidebarNav() {
         </div>
       </div>
 
-      <div className="px-4 pb-5">
-        <Button type="button" variant="default" size="lg" className="w-full">
-          <Plus className="size-4" />
-          Create new
-        </Button>
-      </div>
-
       <div className="flex-1 space-y-6 overflow-y-auto px-4 pb-6 app-scrollbar">
         <div className="border-t border-border-soft pt-5">
-          <NavSection items={primaryNavItems} />
-        </div>
-
-        <div className="border-t border-border-soft pt-5">
-          <NavSection items={secondaryNavItems} />
+          <nav className="space-y-1">
+            {primaryNavItems.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </nav>
         </div>
       </div>
     </aside>
@@ -104,12 +68,11 @@ export function SidebarNav() {
 }
 
 export function MobileNav() {
-  const items = [...primaryNavItems, ...secondaryNavItems];
   const pathname = usePathname();
 
   return (
     <nav className="flex gap-2 overflow-x-auto px-4 py-3 app-scrollbar lg:hidden">
-      {items.map((item) => {
+      {primaryNavItems.map((item) => {
         const isActive = isActivePath(pathname, item.href);
         const Icon = iconMap[item.icon];
 
