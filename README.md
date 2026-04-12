@@ -1,74 +1,186 @@
 # RutGonLink
 
-RutGonLink is a URL shortener with authentication, real redirect links, click tracking, analytics dashboards, and Redis-backed redirect caching.
+## Project overview
 
-## Features
+RutGonLink is a URL shortener with authentication, public redirect links, click tracking, analytics dashboards, and Redis-backed redirect caching.
 
-- Create short links as an anonymous or logged-in user.
-- Redirect short codes to their destination URLs through the backend.
-- Track analytics only for links owned by logged-in users.
-- Store click metadata such as referrer, UTM values, IP, country, city, device, browser, and OS.
-- View analytics list and detail pages in the frontend.
-- Filter analytics links by expiry status and search with debounce.
-- Delete owned short links.
-- Reuse an existing active short link when the same user shortens the same destination URL.
-- Cache redirect lookups in Redis to reduce database reads.
+The app has two deployable parts:
 
-## Tech Stack
+- `backend`: NestJS API for auth, short-link creation, redirect resolution, tracking, analytics, PostgreSQL, and Redis.
+- `frontend`: Next.js app for the UI, auth pages, analytics pages, copy actions, toast feedback, and the public short-link proxy route.
 
-| Area | Tools |
-| --- | --- |
-| Frontend | Next.js App Router, React 19, TypeScript, React Hook Form, Zod, shadcn/ui, Chart.js |
-| Backend | NestJS, TypeScript, Prisma, PostgreSQL |
-| Auth | HTTP-only JWT access and refresh cookies, hashed refresh token in DB |
-| Cache | Upstash Redis REST API |
-| Package manager | pnpm |
-
-## Project Structure
+Production URLs:
 
 ```text
-.
-+-- AI_CHAT_LOG.md
-+-- README.md
-+-- backend
-|   +-- prisma
-|   |   +-- migrations
-|   |   +-- schema.prisma
-|   |   +-- seed.sql
-|   +-- src
-|       +-- analytics
-|       +-- auth
-|       +-- logger
-|       +-- prisma
-|       +-- redis
-|       +-- shortenUrl
-|       +-- tracking
-+-- frontend
-    +-- app
-    |   +-- (app)
-    |   +-- (auth)
-    +-- components
-    +-- features
-    +-- lib
+Backend API: https://shol.up.railway.app/v1/app
+Public app:  https://linkngan.vercel.app
 ```
 
-## Prerequisites
+The public short-link route lives on the frontend domain. It forwards request metadata such as referrer, user agent, IP, and Vercel geo headers to the backend before redirecting the user to the destination URL.
+
+## Features implemented
+
+- Create short links as an anonymous or logged-in user.
+- Reuse an existing active short link when the same logged-in user shortens the same destination URL.
+- Redirect short codes to their destination URLs.
+- Track analytics for links owned by logged-in users.
+- Store click metadata: referrer, UTM values, IP, country, city, device type, browser, and OS.
+- View analytics list and detail pages.
+- Filter analytics links by expiry status and search query.
+- Delete owned short links.
+- Invalidate Redis redirect cache when an owned link is deleted.
+- Copy short links quickly from the create form, analytics list, and analytics detail page.
+- Show toast notifications when a link is created or copied.
+- Cache redirect lookups in Redis to reduce database reads.
+- Expose Swagger documentation for backend APIs.
+
+## Tech stack
+
+| Area            | Tools                                                                               |
+| --------------- | ----------------------------------------------------------------------------------- |
+| Frontend        | Next.js App Router, React 19, TypeScript, React Hook Form, Zod, shadcn/ui, Chart.js |
+| Backend         | NestJS, TypeScript, Prisma, PostgreSQL                                              |
+| Auth            | HTTP-only JWT access and refresh cookies, hashed refresh token in PostgreSQL        |
+| Cache           | Upstash Redis REST API                                                              |
+| UI feedback     | Sonner                                                                              |
+| Package manager | pnpm                                                                                |
+
+## Architecture overview
+
+RutGonLink uses a feature-oriented frontend and modular backend.
+
+The frontend renders the product UI and calls backend APIs from server actions/utilities. Authenticated app pages live under `frontend/app/(app)`, auth pages live under `frontend/app/(auth)`, reusable UI components live under `frontend/components`, and feature-specific logic lives under `frontend/features`.
+
+The frontend also owns the public short-link entrypoint:
+
+```text
+GET /:shortCode
+```
+
+That route receives requests on the Vercel domain, forwards tracking headers to the backend redirect endpoint, then returns the backend redirect response to the browser. This lets the backend record Vercel location headers while keeping displayed short links on the frontend domain.
+
+The backend is organized as NestJS modules:
+
+- `auth`: registration, login, logout, current-user lookup, JWT cookies.
+- `shortenUrl`: short-link creation and redirect target resolution.
+- `tracking`: click-event persistence and recent tracking reads.
+- `analytics`: analytics list/detail queries and link deletion.
+- `redis`: Upstash Redis wrapper for redirect cache.
+- `prisma`: Prisma client lifecycle.
+- `logger`: application logging.
+
+Redirect resolution uses a cache-aside pattern:
+
+```text
+Request short code
+-> read Redis key redirect:<shortCode>
+-> on hit, return cached target
+-> on miss, read PostgreSQL
+-> validate active/expiry state
+-> cache the redirect target with TTL
+-> redirect and record click metadata
+```
+
+The API uses a global prefix, defaulting to:
+
+```text
+/v1/app
+```
+
+The backend redirect endpoint is excluded from that prefix so it can resolve:
+
+```text
+/:shortCode
+```
+
+## API design
+
+Swagger is available locally at:
+
+```text
+http://localhost:3000/v1/app/docs
+```
+
+The API prefix is controlled by `API_GLOBAL_PREFIX`, which defaults to `v1/app`.
+
+| Method   | Path                                      | Purpose                                       |
+| -------- | ----------------------------------------- | --------------------------------------------- |
+| `GET`    | `/v1/app`                                 | Health/basic app response                     |
+| `POST`   | `/v1/app/auth/register`                   | Register and set auth cookies                 |
+| `POST`   | `/v1/app/auth/login`                      | Login and set auth cookies                    |
+| `GET`    | `/v1/app/auth/me`                         | Read the current authenticated user           |
+| `POST`   | `/v1/app/auth/logout`                     | Logout and clear auth cookies                 |
+| `POST`   | `/v1/app/shorten-url`                     | Create or reuse a short link                  |
+| `GET`    | `/:shortCode`                             | Redirect to the destination URL               |
+| `GET`    | `/v1/app/analytics/links`                 | List current user's link analytics            |
+| `GET`    | `/v1/app/analytics/links/:shortCode`      | Read one link's analytics details             |
+| `DELETE` | `/v1/app/analytics/links/:shortCode`      | Delete one owned short link                   |
+| `GET`    | `/v1/app/shorten-url/:shortCode/tracking` | Read recent tracking events for an owned link |
+
+Frontend environment variables separate backend API calls from public short-link display:
+
+```env
+SHORTEN_URL_API_BASE_URL=http://localhost:3000/v1/app
+SHORTEN_URL_PUBLIC_BASE_URL=http://localhost:5173
+```
+
+`SHORTEN_URL_API_BASE_URL` includes the API prefix because frontend code calls endpoints such as `/auth/me`, `/shorten-url`, and `/analytics/links`.
+
+`SHORTEN_URL_PUBLIC_BASE_URL` does not include the API prefix because public short links use `/:shortCode`.
+
+## Data model
+
+The database is PostgreSQL and is managed through Prisma.
+
+Main tables:
+
+- `organizations`: organization/workspace records. The current app is mostly user-focused, but the schema supports organization ownership.
+- `users`: registered users, password hashes, refresh token hashes, user tier, and optional organization membership.
+- `shortened_links`: short code, destination URL, owner user/organization, creator type, active state, expiry, and timestamps.
+- `click_events`: raw click tracking events for owned links, including referrer, UTM values, location headers, device/browser/OS, and IP.
+- `link_stats_hourly`, `link_stats_daily`, `link_stats_weekly`: aggregate tables for link-level reporting.
+- `creator_stats_daily`, `creator_stats_weekly`, `creator_stats_monthly`: aggregate tables for creator-level reporting and leaderboard-style metrics.
+
+Important relationships:
+
+- A `User` can own many `ShortenedLink` records.
+- A `ShortenedLink` can have many `ClickEvent` records.
+- `shortened_links.user_id` is nullable, so anonymous users can create links.
+- Click analytics are persisted only for links owned by logged-in users.
+- `click_events` references both `link_id` and `user_id` to keep click data scoped to the link owner.
+- Primary keys use `BigInt` IDs generated by the application.
+
+Important indexes and constraints:
+
+- `shortened_links.short_code` is unique.
+- `shortened_links` is indexed by user, organization, and creation time.
+- `click_events` is indexed by link, user, organization, clicked time, referrer domain, location, and device type.
+- Aggregate stats tables use unique constraints per link/date or creator/date bucket.
+
+## How to run
+
+It is normal for a README to include environment variable setup. The common pattern is to commit `.env.example`, document required variables, and never commit real secrets.
+
+Prerequisites:
 
 - Node.js compatible with the installed Next.js and NestJS versions.
 - pnpm.
 - PostgreSQL database.
 - Upstash Redis database or compatible Redis REST credentials.
 
-## Environment Variables
+Create environment files:
 
-### Backend
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
+```
 
-Create `backend/.env` from `backend/.env.example`.
+Backend local environment should include:
 
 ```env
 PORT=3000
 API_GLOBAL_PREFIX=v1/app
-SHORTEN_URL_PUBLIC_BASE_URL=http://localhost:3000
+SHORTEN_URL_PUBLIC_BASE_URL=http://localhost:5173
 CORS_ORIGINS=http://localhost:5173
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
 JWT_SECRET=replace-with-a-long-random-secret
@@ -83,42 +195,32 @@ UPSTASH_REDIS_REST_TOKEN=
 REDIS_CACHE_TTL_S=3600
 ```
 
-### Frontend
-
-Create `frontend/.env.local`.
+Frontend local environment should include:
 
 ```env
 SHORTEN_URL_API_BASE_URL=http://localhost:3000/v1/app
-SHORTEN_URL_PUBLIC_BASE_URL=http://localhost:3000
+SHORTEN_URL_PUBLIC_BASE_URL=http://localhost:5173
 JWT_ACCESS_COOKIE_NAME=access_token
 JWT_REFRESH_COOKIE_NAME=refresh_token
 ```
 
-`SHORTEN_URL_API_BASE_URL` must include the backend global prefix because frontend server actions call endpoints such as `/auth/me`, `/shorten-url`, and `/analytics/links` through this base URL.
-
-`SHORTEN_URL_PUBLIC_BASE_URL` should point to the public redirect host, without the API prefix, because short links are served as `/:shortCode`.
-
-## Backend Setup
+Run the backend:
 
 ```bash
 cd backend
 pnpm install
 pnpm exec prisma generate
 pnpm exec prisma migrate dev
-pnpm run start:dev
+pnpm start:dev
 ```
 
-The backend listens on `http://localhost:3000` by default.
-
-Swagger is available at:
+The backend runs at:
 
 ```text
-http://localhost:3000/v1/app/docs
+http://localhost:3000
 ```
 
-To load the provided smoke-test seed data, run `backend/prisma/seed.sql` against your PostgreSQL database with your preferred SQL client.
-
-## Frontend Setup
+Run the frontend in a separate terminal:
 
 ```bash
 cd frontend
@@ -126,67 +228,8 @@ pnpm install
 pnpm dev
 ```
 
-The frontend runs on:
+The frontend runs at:
 
 ```text
 http://localhost:5173
 ```
-
-## Common Scripts
-
-### Backend
-
-```bash
-pnpm run start:dev
-pnpm run build
-pnpm run test
-pnpm run test:e2e
-pnpm run lint
-```
-
-### Frontend
-
-```bash
-pnpm dev
-pnpm build
-pnpm start
-pnpm lint
-```
-
-## API Overview
-
-The backend uses `API_GLOBAL_PREFIX`, which defaults to `v1/app`, for API routes. The redirect endpoint is intentionally excluded from that prefix.
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `POST` | `/v1/app/auth/register` | Register and set auth cookies |
-| `POST` | `/v1/app/auth/login` | Login and set auth cookies |
-| `GET` | `/v1/app/auth/me` | Read the current authenticated user |
-| `POST` | `/v1/app/auth/logout` | Logout and clear auth cookies |
-| `POST` | `/v1/app/shorten-url` | Create or reuse a short link |
-| `GET` | `/:shortCode` | Redirect to the destination URL |
-| `GET` | `/v1/app/analytics/links` | List current user's link analytics |
-| `GET` | `/v1/app/analytics/links/:shortCode` | Read one link's analytics details |
-| `DELETE` | `/v1/app/analytics/links/:shortCode` | Delete one owned short link |
-| `GET` | `/v1/app/shorten-url/:shortCode/tracking` | Read recent tracking events for an owned link |
-
-## Data Model Notes
-
-- `shortened_links.user_id` is nullable so anonymous users can create short links.
-- Analytics rows are created only for links owned by logged-in users.
-- Raw clicks are stored in `click_events`.
-- Aggregated link stats are stored by hour, day, and week.
-- Aggregated creator stats are stored by day, week, and month for leaderboard-style reporting.
-- Primary keys use `BigInt` to support snowflake-style IDs.
-
-## Development Notes
-
-- The frontend App Router separates authenticated app pages under `frontend/app/(app)` and auth pages under `frontend/app/(auth)`.
-- Frontend feature code lives under `frontend/features`.
-- Backend feature modules live under `backend/src`, with separate modules for auth, analytics, short links, tracking, Redis, Prisma, and logging.
-- Redirect tracking uses request headers and does not currently call a third-party geolocation API.
-- Redis uses a cache-aside pattern: check Redis first, fall back to PostgreSQL, then cache the redirect target.
-
-## AI Work Log
-
-Major AI-assisted implementation sessions are documented in `AI_CHAT_LOG.md`. The log records the original prompt context, generated work, accepted parts, follow-up modifications, and why each session affected the project.

@@ -2,16 +2,6 @@
 
 This document records significant AI-assisted work sessions for RutGonLink and explains how the generated output was used. Each entry follows the same structure so future readers can quickly understand the prompt, accepted work, follow-up changes, and reason the session matters.
 
-## Format Notes
-
-The original log needed cleanup in the following places:
-
-- Session headings used inconsistent numbering, including duplicated `Prompt Given to the AI 7`.
-- Some text had encoding artifacts and broken quote characters.
-- Several paths were split across lines, which made them harder to copy or review.
-- The accepted and modified sections varied in detail, so it was difficult to compare decisions between sessions.
-- Typos such as `analitics`, `shortend`, and `ussing` were kept only when they were part of the original prompt context, but the surrounding summary was normalized for readability.
-
 ## Session 01 - Backend Shorten URL Feature
 
 ### Prompt
@@ -27,20 +17,17 @@ The original log needed cleanup in the following places:
 - Added URL validation so invalid input returns `400`.
 - Added controller, service, and e2e tests.
 
-### Accepted
+### Accepted & Reason
 
 - The endpoint matched the requested backend behavior.
 - The `nanoid` usage matched the 7-character short code requirement.
 - Tests covered both application logic and the HTTP contract.
 - The base URL decorator kept request-host extraction out of the controller method.
 
-### Modified
+### Modified & Changed
 
+- The SOLID principle might be out of hands, the structure are more complicate than needed. So i do change the structure back to traditional Nestjs.
 - Fixed a TypeScript error in `shorten-url.controller.spec.ts`.
-
-### Why This Entry Matters
-
-This session introduced the core backend feature and established the feature-folder structure used by later backend work.
 
 ## Session 02 - Frontend Shorten URL Form
 
@@ -56,20 +43,16 @@ This session introduced the core backend feature and established the feature-fol
 - Added `frontend/features/shortenUrl/schemas/shorten-url.schema.ts`.
 - Kept `frontend/app/(app)/page.tsx` focused on page-level UI and imported the form feature.
 
-### Accepted
+### Accepted & Reason
 
 - The server action used a straightforward `fetch` call.
 - The Zod schema was enough for the basic form case.
 - The form structure matched the requested React Hook Form and Zod approach.
 
-### Modified
+### Modified & Changed
 
 - Changed invalid URL handling so the frontend shows a simple `Invalid URL` validation message instead of exposing backend error wording.
 - Removed unnecessary backend error fields from the frontend URL interface.
-
-### Why This Entry Matters
-
-This session connected the frontend to the shortening API and created the feature-folder pattern used by later frontend work.
 
 ## Session 03 - Initial PostgreSQL Schema
 
@@ -86,19 +69,15 @@ This session connected the frontend to the shortening API and created the featur
   - `ClickEvent`
   - `LinkStatsDaily`
 
-### Accepted
+### Accepted & Reason
 
 - `User`, `ShortenedLink`, `ClickEvent`, and `LinkStatsDaily` covered the basic user, link, and click-tracking needs.
 - The schema had enough context to store user information, link information, and individual click data.
 
-### Modified
+### Modified & Changed
 
-- `Organization` was considered too complicated for the immediate scope.
+- `Organization` was considered too complicated for the immediate scope. I not modified or change anything, but also not use it currently.
 - The analytics model needed stronger long-term stats tracking.
-
-### Why This Entry Matters
-
-This session started the database model, but also exposed that daily-only analytics would not support the desired reporting queries.
 
 ## Session 04 - Expanded Analytics Schema
 
@@ -119,18 +98,14 @@ This session started the database model, but also exposed that daily-only analyt
   - `creator_stats_weekly`
   - `creator_stats_monthly`
 
-### Accepted
+### Accepted & Reason
 
 - Splitting stats by time bucket reduced the need to scan raw click events for common analytics screens.
 - Creator-level aggregates supported leaderboard-style queries such as users with the most clicks.
 
-### Modified
+### Modified & Changed
 
-- No follow-up code changes were recorded.
-
-### Why This Entry Matters
-
-This session shaped the analytics storage model that later backend and frontend analytics features depend on.
+- Nothing
 
 ## Session 05 - JWT Cookie Authentication
 
@@ -146,21 +121,17 @@ This session shaped the analytics storage model that later backend and frontend 
 - Hashed passwords before saving users.
 - Cleared access and refresh token cookies on logout.
 
-### Accepted
+### Accepted & Reason
 
 - Login and register created access and refresh tokens.
 - Logout removed both auth cookies.
 - Password hashing and hashed refresh-token storage matched the security requirement.
 
-### Modified
+### Modified & Changed
 
 - Added a guard to prevent logged-in users from using login/register again.
 - Added a guard to prevent unauthenticated users from using logout.
 - Added throttling for rate limiting.
-
-### Why This Entry Matters
-
-This session introduced authenticated ownership, which became the boundary for analytics and tracking.
 
 ## Session 06 - App Shell and Navigation UI
 
@@ -175,18 +146,14 @@ This session introduced authenticated ownership, which became the boundary for a
 - Created pages for navigation routes.
 - Added a simple top header with search.
 
-### Accepted
+### Accepted & Reason
 
 - The CSS changes and smaller components were acceptable.
 - The page rendered without recorded errors.
 
-### Modified
+### Modified & Changed
 
 - Fixed the sidebar behavior by changing it to `h-screen` and `sticky top-0` so it stays fixed while the main page scrolls.
-
-### Why This Entry Matters
-
-This session created the main authenticated app layout and navigation structure.
 
 ## Session 07 - Real Redirect Short Links
 
@@ -201,18 +168,14 @@ This session created the main authenticated app layout and navigation structure.
 - Added uniqueness checks, active-state checks, and expiry validation.
 - Added unit tests.
 
-### Accepted
+### Accepted & Reason
 
 - The redirect behavior matched the expected short-link behavior.
 - Persistence and validation made the feature usable beyond the demo form.
 
-### Modified
+### Modified & Changed
 
 - Combined two controller classes into one controller because they shared the same service and were easier to read together.
-
-### Why This Entry Matters
-
-This session turned short links from UI-only results into actual redirecting URLs.
 
 ## Session 08 - Tracking Redirect Clicks
 
@@ -226,19 +189,15 @@ This session turned short links from UI-only results into actual redirecting URL
 - Kept tracking limited to links owned by logged-in users.
 - Avoided third-party tracking APIs.
 
-### Accepted
+### Accepted & Reason
 
 - The base tracking logic was simple enough to keep.
 - The implementation respected the rule that only logged-in users get analytics tracking.
 
-### Modified
+### Modified & Changed
 
-- Split tracking into its own `tracking` feature instead of keeping it inside `shortenUrl`.
+- Split tracking into its own `tracking` feature instead of keeping it inside `shortenUrl`. It might cause oversize feature, better DI.
 - Imported `TrackingModule` into `ShortenUrlModule`.
-
-### Why This Entry Matters
-
-This session separated redirect behavior from analytics collection, keeping the feature boundaries clearer.
 
 ## Session 09 - Backend Analytics List
 
@@ -253,18 +212,14 @@ This session separated redirect behavior from analytics collection, keeping the 
 - Returned enough data for the frontend analytics list page.
 - Did not use a third-party analytics provider.
 
-### Accepted
+### Accepted & Reason
 
 - The concept separated concerns well.
 - The response contained enough information for frontend rendering.
 
-### Modified
+### Modified & Changed
 
-- No follow-up code changes were recorded.
-
-### Why This Entry Matters
-
-This session introduced the user-facing analytics API surface.
+- Nothing
 
 ## Session 10 - Backend Analytics Detail
 
@@ -277,18 +232,14 @@ This session introduced the user-facing analytics API surface.
 - Added an endpoint for reading detailed analytics for a single short link.
 - Included information needed by the frontend detail view, such as IP and referrer data.
 
-### Accepted
+### Accepted & Reason
 
 - The logic was simple and clear.
 - The endpoint matched the detail-screen data requirement.
 
-### Modified
+### Modified & Changed
 
-- No follow-up code changes were recorded.
-
-### Why This Entry Matters
-
-This session added the backend data needed for the detailed analytics page.
+- The referrer actually always null/unknown. The propblem was the <a> tag set rel="noreferrer" so the browser send nothing -> change to noopener
 
 ## Session 11 - Analytics Detail UI
 
@@ -302,18 +253,14 @@ This session added the backend data needed for the detailed analytics page.
 - Rendered shortened-link information and device charts.
 - Added a delete button.
 
-### Accepted
+### Accepted & Reason
 
 - Chart.js was accepted because it presented device analytics clearly.
 
-### Modified
+### Modified & Changed
 
 - Moved the detail UI out of a dialog and into a separate route because the original UI was too large for the dialog.
 - Reduced overly generic AI-looking UI by removing excessive rounded borders and unnecessary background blocks.
-
-### Why This Entry Matters
-
-This session moved analytics details toward a full-page dashboard instead of a cramped modal.
 
 ## Session 12 - Analytics Detail Child Route
 
@@ -328,20 +275,16 @@ This session moved analytics details toward a full-page dashboard instead of a c
 - Replaced raw short-code display with full short-link URLs.
 - Used environment variables instead of hardcoded public short-link URLs.
 
-### Accepted
+### Accepted & Reason
 
 - The detail route and charts were acceptable.
 - Full short-link display improved the UI compared with raw short-code-only display.
 
-### Modified
+### Modified & Changed
 
 - Removed unnecessary page params usage.
 - Changed the city analytics table UI.
 - Removed the recent-click section.
-
-### Why This Entry Matters
-
-This session finalized the navigation model for analytics details and removed hardcoded short-link display assumptions.
 
 ## Session 13 - Analytics List Filters and Delete
 
@@ -355,21 +298,17 @@ This session finalized the navigation model for analytics details and removed ha
 - Added a delete short-link API.
 - Added delete UI behavior with a basic `alert()`.
 
-### Accepted
+### Accepted & Reason
 
 - Search worked with debounce and backend filtering.
 - The delete API worked.
 
-### Modified
+### Modified & Changed
 
 - Replaced the plain JavaScript selector with a shadcn select component.
 - Removed duplicated display information.
 - Fixed link click behavior by adjusting z-index.
 - Added a loader animation for the search result area.
-
-### Why This Entry Matters
-
-This session made the analytics list more usable for real link management.
 
 ## Session 14 - Redis Cache and Deduplication
 
@@ -384,15 +323,11 @@ This session made the analytics list more usable for real link management.
 - Added deduplication so the same user gets an existing unexpired short link for the same destination URL.
 - Created a new link only when no usable existing link is found.
 
-### Accepted
+### Accepted & Reason
 
 - The cache-aside flow was simple and clear.
 - The deduplication behavior matched the requested user experience.
 
-### Modified
+### Modified & Changed
 
-- No follow-up code changes were recorded.
-
-### Why This Entry Matters
-
-This session reduced repeated database reads on redirects and prevented duplicate active links for the same user and URL.
+- Nothing
