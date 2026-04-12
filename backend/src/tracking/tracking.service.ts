@@ -23,6 +23,8 @@ export class TrackingService {
       shortenedLink.destinationUrl,
     );
 
+    const resolvedIp = this.resolveClientIpAddress(clickRequest);
+
     await this.prismaService.clickEvent.create({
       data: {
         id: this.createClickEventId(),
@@ -45,7 +47,7 @@ export class TrackingService {
         deviceType: this.detectDeviceType(clickRequest?.userAgent ?? null),
         browser: this.detectBrowser(clickRequest?.userAgent ?? null),
         os: this.detectOperatingSystem(clickRequest?.userAgent ?? null),
-        ipAddress: this.resolveClientIpAddress(clickRequest),
+        ipAddress: resolvedIp,
       },
     });
   }
@@ -84,6 +86,8 @@ export class TrackingService {
           os: true,
           deviceType: true,
           ipAddress: true,
+          city: true,
+          country: true,
         },
       }),
     ]);
@@ -101,6 +105,8 @@ export class TrackingService {
             click.os,
             click.deviceType,
             click.ipAddress,
+            click.city,
+            click.country,
           ),
       ),
     );

@@ -8,6 +8,8 @@ export class ShortLinkTrackingClickDto {
     public readonly os: string | null,
     public readonly deviceType: DeviceType | null,
     public readonly ipAddress: string | null,
+    public readonly city: string | null,
+    public readonly country: string | null,
   ) {}
 }
 

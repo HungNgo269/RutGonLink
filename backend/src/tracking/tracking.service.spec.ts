@@ -5,29 +5,20 @@ import { TrackingService } from './tracking.service';
 describe('TrackingService', () => {
   let service: TrackingService;
   let prismaService: {
-    shortenedLink: {
-      findUnique: jest.Mock;
-    };
-    clickEvent: {
-      count: jest.Mock;
-      create: jest.Mock;
-      findMany: jest.Mock;
-    };
+    shortenedLink: { findUnique: jest.Mock };
+    clickEvent: { count: jest.Mock; create: jest.Mock; findMany: jest.Mock };
   };
 
   beforeEach(() => {
     prismaService = {
-      shortenedLink: {
-        findUnique: jest.fn(),
-      },
-      clickEvent: {
-        count: jest.fn(),
-        create: jest.fn(),
-        findMany: jest.fn(),
-      },
+      shortenedLink: { findUnique: jest.fn() },
+      clickEvent: { count: jest.fn(), create: jest.fn(), findMany: jest.fn() },
     };
-
     service = new TrackingService(prismaService as unknown as PrismaService);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('when tracking an owned link click, persists the click event', async () => {
@@ -64,7 +55,7 @@ describe('TrackingService', () => {
     });
   });
 
-  it('when request metadata contains campaign and location data, persists it on the click event', async () => {
+  it('when CDN headers provide city and country, persists them on the click event', async () => {
     prismaService.clickEvent.create.mockResolvedValue({});
 
     await service.trackRedirectClick(
@@ -158,7 +149,7 @@ describe('TrackingService', () => {
     });
   });
 
-  it('when loading tracking for a link owner, returns aggregate clicks', async () => {
+  it('when loading tracking for a link owner, returns aggregate clicks with city and country', async () => {
     const clickedAt = new Date('2026-04-10T10:00:00.000Z');
     prismaService.shortenedLink.findUnique.mockResolvedValue({
       id: BigInt(11),
@@ -174,6 +165,8 @@ describe('TrackingService', () => {
         os: 'Windows',
         deviceType: 'desktop',
         ipAddress: '127.0.0.1',
+        city: 'Hanoi',
+        country: 'Vietnam',
       },
     ]);
 
@@ -189,6 +182,8 @@ describe('TrackingService', () => {
           os: 'Windows',
           deviceType: 'desktop',
           ipAddress: '127.0.0.1',
+          city: 'Hanoi',
+          country: 'Vietnam',
         },
       ],
     });
