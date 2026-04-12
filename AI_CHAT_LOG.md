@@ -227,3 +227,52 @@ implement for me a View details for analitics table logic at backend. When click
 ### What Was Modified and What Specifically Changed
 
 - Nothing
+
+### Prompt Given to the AI 10
+
+I want the detail url information look like this image. Instead just show plain text like currently. you can use chart.js and shadcn for display.No need qr code - bitly page. Or share - edit button. Just make a delete button only.
+
+### What the AI Generated
+
+- It apply chartjs and shadcn to display the analitics. And the shortend link infomation.
+
+### What Was Accepted As-Is and Why
+
+- Accept the chartjs, it show a nice chart of devices
+
+### What Was Modified and What Specifically Changed
+
+- Mostly the UI, too much size in such a small room => make it display in another route instead of the dialog (links/[name])
+  -The UI look similar to AI base (indeed), so i have to change it to look more humanalike by remove rounded border or unnecessary background color.
+
+### Prompt Given to the AI 11
+
+instead of showing in a dialog. can you make it a child route with a button to go back father route ([nameoftheshortenlink]). like the image i sent. and when ever display shorten code like this: /HTEeH9i; replace it with the full shortenlink like http://127.0.0.1:3000/zR5bQg9 (make sure use env variable instead of hardcoded)
+
+### What the AI Generated
+
+- It do apply a router feature, but there is some problem, it display page params when it not necessary.
+-
+
+### What Was Accepted As-Is and Why
+
+- Accept the chartjs, it show a nice chart of devices and clicks.
+
+### What Was Modified and What Specifically Changed
+
+- Remove page params. change city analitics table UI, remove recent click
+
+### Prompt Given to the AI 12
+
+ok, at the list page, can you modify UI look like this image instead of the old one. It do have filter, in this case instead of hidden active. i want it filter by expire. Currently search just add a debounce 500ms with LIKE search. And add a delete shortenlink api too.
+
+### What Was Accepted As-Is and Why
+
+- The function work okay, the search and the delete shortenlink api is ok.
+
+### What Was Modified and What Specifically Changed
+
+- The filter UI using js selector -> change to shadcn.
+- the display info is no needed and duplicate -> remove it
+- the link is not clickable, instead it guide to details page -> i change z index;
+- search result box is not having loader -> add loader animation component to display.

@@ -5,10 +5,12 @@ import {
 import { apiFetch } from "@/lib/api";
 
 export async function getUserLinkAnalytics(
-  page = 1,
+  query: UserLinkAnalyticsQuery = { page: 1, search: "", expires: "all" },
 ): Promise<AnalyticsResult> {
   try {
-    const response = await apiFetch(`/analytics/links?page=${page}&limit=10`);
+    const response = await apiFetch(
+      `/analytics/links?${buildAnalyticsQuery(query)}`,
+    );
 
     if (response.status === 401) {
       return {
@@ -48,6 +50,14 @@ export async function getUserLinkAnalytics(
   }
 }
 
+export type LinkExpiryFilter = "all" | "expired" | "expiring" | "no-expiry";
+
+export type UserLinkAnalyticsQuery = {
+  page: number;
+  search: string;
+  expires: LinkExpiryFilter;
+};
+
 type AnalyticsResult =
   | {
       status: "success";
@@ -75,4 +85,22 @@ function getErrorMessage(payload: unknown): string {
   }
 
   return "The analytics request failed.";
+}
+
+function buildAnalyticsQuery(query: UserLinkAnalyticsQuery): string {
+  const params = new URLSearchParams({
+    page: String(query.page),
+    limit: "10",
+  });
+  const search = query.search.trim();
+
+  if (search) {
+    params.set("search", search);
+  }
+
+  if (query.expires !== "all") {
+    params.set("expires", query.expires);
+  }
+
+  return params.toString();
 }

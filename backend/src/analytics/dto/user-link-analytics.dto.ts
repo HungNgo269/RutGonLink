@@ -4,6 +4,7 @@ export class UserLinkAnalyticsItemDto {
     public readonly destinationUrl: string,
     public readonly shortenedUrlPath: string,
     public readonly createdAt: string,
+    public readonly expiresAt: string | null,
     public readonly totalClicks: number,
     public readonly lastClickedAt: string | null,
   ) {}

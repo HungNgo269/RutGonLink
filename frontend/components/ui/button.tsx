@@ -10,10 +10,13 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-accent text-content-inverted shadow-app-panel hover:bg-accent-strong",
+        outline:
+          "border border-border-soft bg-surface text-content-primary hover:border-accent hover:text-accent",
         secondary:
           "border border-border-soft bg-surface text-content-primary hover:border-accent hover:text-accent",
         teal: "bg-teal text-content-inverted hover:bg-teal-strong",
-        ghost: "text-content-primary hover:bg-surface-hover hover:text-content-heading",
+        ghost:
+          "text-content-primary hover:bg-surface-hover hover:text-content-heading",
         destructive: "text-danger hover:bg-danger-soft",
       },
       size: {

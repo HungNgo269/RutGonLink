@@ -5,6 +5,7 @@ export const userLinkAnalyticsItemSchema = z.object({
   destinationUrl: z.string().url(),
   shortenedUrlPath: z.string().min(1),
   createdAt: z.string().datetime(),
+  expiresAt: z.string().datetime().nullable(),
   totalClicks: z.number().int().nonnegative(),
   lastClickedAt: z.string().datetime().nullable(),
 });

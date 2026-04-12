@@ -1,11 +1,8 @@
-"use server";
-
 import {
   linkAnalyticsDetailSchema,
   type LinkAnalyticsDetail,
 } from "@/features/analytics/schemas/link-analytics-detail.schema";
 import { apiFetch } from "@/lib/api";
-import { applyResponseCookies } from "@/lib/response-cookies";
 
 export type LinkAnalyticsDetailResult =
   | {
@@ -21,8 +18,17 @@ export async function getLinkAnalyticsDetail(
   shortCode: string,
 ): Promise<LinkAnalyticsDetailResult> {
   try {
-    const response = await apiFetch(`/analytics/links/${shortCode}`);
-    await applyResponseCookies(response);
+    const response = await apiFetch(
+      `/analytics/links/${encodeURIComponent(shortCode)}`,
+    );
+
+    if (response.status === 401) {
+      return {
+        status: "error",
+        message: "Sign in to view analytics for this shortened link.",
+      };
+    }
+
     const json = await response.json().catch(() => null);
 
     if (!response.ok) {
@@ -48,7 +54,8 @@ export async function getLinkAnalyticsDetail(
   } catch {
     return {
       status: "error",
-      message: "Unable to load analytics details right now.",
+      message:
+        "Unable to reach the analytics API. Set SHORTEN_URL_API_BASE_URL if your backend runs on a different port.",
     };
   }
 }
@@ -58,7 +65,8 @@ function getErrorMessage(payload: unknown): string {
     return "The analytics detail request failed.";
   }
 
-  const message = payload instanceof Object ? Reflect.get(payload, "message") : null;
+  const message =
+    payload instanceof Object ? Reflect.get(payload, "message") : null;
 
   if (typeof message === "string") {
     return message;

@@ -14,6 +14,9 @@ describe('AnalyticsController', () => {
     getLinkAnalyticsDetail: jest.MockedFunction<
       AnalyticsService['getLinkAnalyticsDetail']
     >;
+    deleteUserShortenedLink: jest.MockedFunction<
+      AnalyticsService['deleteUserShortenedLink']
+    >;
   };
   let authSessionService: {
     getAuthenticatedUserId: jest.MockedFunction<
@@ -28,6 +31,7 @@ describe('AnalyticsController', () => {
     analyticsService = {
       getUserLinkAnalytics: jest.fn(),
       getLinkAnalyticsDetail: jest.fn(),
+      deleteUserShortenedLink: jest.fn(),
     };
     authSessionService = {
       getAuthenticatedUserId: jest.fn(),
@@ -66,6 +70,7 @@ describe('AnalyticsController', () => {
           destinationUrl: 'https://example.com',
           shortenedUrlPath: '/abc1234',
           createdAt: '2026-04-10T10:00:00.000Z',
+          expiresAt: null,
           totalClicks: 2,
           lastClickedAt: '2026-04-10T12:00:00.000Z',
         },
@@ -83,6 +88,8 @@ describe('AnalyticsController', () => {
       } as never,
       '2',
       '10',
+      'example',
+      'expired',
     );
 
     expect(analyticsService.getUserLinkAnalytics).toHaveBeenCalledWith(
@@ -90,6 +97,8 @@ describe('AnalyticsController', () => {
       {
         page: 2,
         limit: 10,
+        search: 'example',
+        expires: 'expired',
       },
     );
     expect(result.totalLinks).toBe(1);
@@ -102,22 +111,31 @@ describe('AnalyticsController', () => {
       shortenedUrlPath: '/abc1234',
       createdAt: '2026-04-10T10:00:00.000Z',
       totalClicks: 1,
-      clicks: [
+      engagementsOverTime: [
         {
-          clickedAt: '2026-04-10T12:00:00.000Z',
-          referrerUrl: 'https://referrer.example/source',
-          referrerDomain: 'referrer.example',
-          utmSource: 'newsletter',
-          utmMedium: 'email',
-          utmCampaign: 'spring-launch',
-          utmTerm: null,
-          utmContent: null,
-          country: 'Vietnam',
-          city: 'Ho Chi Minh City',
-          deviceType: 'desktop',
-          browser: 'Chrome',
-          os: 'Windows',
-          ipAddress: '127.0.0.1',
+          date: '2026-04-10',
+          totalClicks: 1,
+        },
+      ],
+      locations: [
+        {
+          label: 'Ho Chi Minh City, Vietnam',
+          totalClicks: 1,
+          percentage: 100,
+        },
+      ],
+      referrers: [
+        {
+          label: 'referrer.example',
+          totalClicks: 1,
+          percentage: 100,
+        },
+      ],
+      devices: [
+        {
+          label: 'Laptop / PC',
+          totalClicks: 1,
+          percentage: 100,
         },
       ],
     });
@@ -130,6 +148,26 @@ describe('AnalyticsController', () => {
       'abc1234',
       BigInt(7),
     );
-    expect(result.clicks).toHaveLength(1);
+    expect(result.devices).toHaveLength(1);
+  });
+
+  it('deletes an owned short link for the authenticated user', async () => {
+    analyticsService.deleteUserShortenedLink.mockResolvedValue({
+      shortCode: 'abc1234',
+      deleted: true,
+    });
+
+    const result = await controller.deleteShortenedLink('abc1234', {
+      userId: BigInt(7),
+    } as never);
+
+    expect(analyticsService.deleteUserShortenedLink).toHaveBeenCalledWith(
+      'abc1234',
+      BigInt(7),
+    );
+    expect(result).toEqual({
+      shortCode: 'abc1234',
+      deleted: true,
+    });
   });
 });

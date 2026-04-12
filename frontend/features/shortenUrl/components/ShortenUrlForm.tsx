@@ -94,14 +94,10 @@ export function ShortenUrlForm() {
         </p>
 
         {safeState.data ? (
-          <dl className="mt-4 grid gap-3 rounded-2xl bg-surface/90 p-4 text-ui-sm text-content-primary sm:grid-cols-3">
+          <dl className="mt-4 grid gap-3 rounded-2xl bg-surface/90 p-4 text-ui-sm text-content-primary sm:grid-cols-2">
             <div>
               <dt className="font-ui-semibold text-content-strong">Original URL</dt>
               <dd className="mt-1 break-all">{safeState.data.originalUrl}</dd>
-            </div>
-            <div>
-              <dt className="font-ui-semibold text-content-strong">Short code</dt>
-              <dd className="mt-1">{safeState.data.shortCode}</dd>
             </div>
             <div>
               <dt className="font-ui-semibold text-content-strong">Short link</dt>

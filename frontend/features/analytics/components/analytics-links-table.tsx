@@ -1,20 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Loader2, MousePointerClick } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, Clock3, ExternalLink, Trash2 } from "lucide-react";
 import {
-  getLinkAnalyticsDetail,
-  type LinkAnalyticsDetailResult,
-} from "@/features/analytics/actions/get-link-analytics-detail";
-import type { LinkAnalyticsDetail } from "@/features/analytics/schemas/link-analytics-detail.schema";
-import type { UserLinkAnalyticsResponse } from "@/features/analytics/schemas/user-link-analytics.schema";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -22,156 +23,212 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { deleteShortenedLink } from "@/features/analytics/actions/delete-shortened-link";
+import { buildShortenedUrl } from "@/features/analytics/lib/build-shortened-url";
+import type { LinkExpiryFilter } from "@/features/analytics/lib/get-user-link-analytics";
+import type { UserLinkAnalyticsResponse } from "@/features/analytics/schemas/user-link-analytics.schema";
 
 type AnalyticsLinksTableProps = {
   links: UserLinkAnalyticsResponse["links"];
   page: number;
+  search: string;
+  expires: LinkExpiryFilter;
   totalPages: number;
   totalLinks: number;
+  shortenedUrlBaseUrl: string;
 };
 
 export function AnalyticsLinksTable({
   links,
   page,
+  search,
+  expires,
   totalPages,
   totalLinks,
+  shortenedUrlBaseUrl,
 }: AnalyticsLinksTableProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedShortCode, setSelectedShortCode] = useState<string | null>(
+  const [deletingShortCode, setDeletingShortCode] = useState<string | null>(
     null,
   );
-  const [detailResult, setDetailResult] =
-    useState<LinkAnalyticsDetailResult | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  function openDetails(shortCode: string) {
-    setDialogOpen(true);
-    setSelectedShortCode(shortCode);
-    setDetailResult(null);
+  function deleteLink(shortCode: string) {
+    setDeletingShortCode(shortCode);
+    setDeleteError(null);
 
     startTransition(async () => {
-      setDetailResult(await getLinkAnalyticsDetail(shortCode));
+      const result = await deleteShortenedLink(shortCode);
+
+      if (result.status === "error") {
+        setDeleteError(result.message);
+        setDeletingShortCode(null);
+        return;
+      }
+
+      setDeletingShortCode(null);
+      router.refresh();
     });
   }
 
   return (
     <>
-      <div className="mt-8 overflow-hidden rounded-[28px] border border-border-soft">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Source URL</TableHead>
-              <TableHead>Short code</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Clicks</TableHead>
-              <TableHead>Last click</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-              {links.map((link) => (
-                <TableRow
-                  key={link.shortCode}
-                  className="cursor-pointer align-top transition-colors hover:bg-surface-hover focus-within:bg-surface-hover"
-                  onClick={() => openDetails(link.shortCode)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      openDetails(link.shortCode);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <TableCell>
-                    <div className="max-w-[32rem]">
-                      <p className="truncate font-ui-semibold text-content-heading">
-                        {link.destinationUrl}
-                      </p>
-                      <p className="mt-2 text-ui-xs uppercase tracking-[0.16em] text-content-muted">
-                        Path {link.shortenedUrlPath}
-                      </p>
+      {deleteError ? (
+        <div className="mt-5 rounded-2xl bg-danger-soft p-4 text-ui-sm text-danger">
+          {deleteError}
+        </div>
+      ) : null}
+
+      <div className="mt-6 flex flex-col gap-4">
+        {links.map((link) => {
+          const shortenedUrl = buildShortenedUrl(
+            shortenedUrlBaseUrl,
+            link.shortCode,
+          );
+          const expiry = getExpiryDisplay(link.expiresAt);
+          const destinationLabel = getDestinationLabel(link.destinationUrl);
+          const detailHref = `/analytics/${encodeURIComponent(link.shortCode)}`;
+          const isDeleting =
+            isPending && deletingShortCode === link.shortCode;
+
+          return (
+            <article
+              key={link.shortCode}
+              className="group rounded-lg border border-border-soft bg-surface p-5 shadow-app-panel transition-colors hover:border-accent/40 hover:bg-surface-cool"
+            >
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                <div className="relative z-10 min-w-0 flex-1">
+                  <div className="flex items-start gap-4">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                      <ExternalLink className="size-5" />
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex rounded-full bg-accent-soft px-3 py-2 text-ui-sm font-ui-semibold text-accent">
-                      {link.shortCode}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-ui-sm text-content-secondary">
-                    {formatDateTime(link.createdAt)}
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-ui-lg font-ui-semibold text-content-heading">
+                    <div className="min-w-0">
+                      <Link
+                        href={detailHref}
+                        className="block break-all text-ui-lg font-ui-semibold text-content-heading hover:text-accent"
+                      >
+                        {destinationLabel}
+                      </Link>
+                      <a
+                        href={shortenedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 block break-all text-ui-sm font-ui-semibold text-accent hover:text-accent-strong"
+                      >
+                        {shortenedUrl}
+                      </a>
+                      <a
+                        href={link.destinationUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 block max-w-4xl truncate text-ui-sm text-content-secondary hover:text-content-heading"
+                      >
+                        {link.destinationUrl}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative z-20 flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
+                  <div className="rounded-2xl bg-surface-muted px-4 py-3 text-right">
+                    <p className="text-ui-xs font-ui-semibold uppercase tracking-[0.16em] text-content-muted">
+                      Clicks
+                    </p>
+                    <p className="mt-1 text-heading-sm font-ui-semibold text-content-heading">
                       {formatNumber(link.totalClicks)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-ui-sm text-content-secondary">
-                    {link.lastClickedAt
-                      ? formatDateTime(link.lastClickedAt)
-                      : "No clicks yet"}
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="rounded-lg"
+                        disabled={isDeleting}
+                      >
+                        <Trash2 className="size-4" />
+                        {isDeleting ? "Deleting" : "Delete"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this short link?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will remove the short link and its tracking data.
+                          This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={() => deleteLink(link.shortCode)}
+                        >
+                          Delete link
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border-soft pt-4 text-ui-sm text-content-secondary">
+                <MetaItem
+                  icon={<CalendarDays className="size-4" />}
+                  label="Created"
+                  value={formatDateTime(link.createdAt)}
+                />
+                <MetaItem
+                  icon={<Clock3 className="size-4" />}
+                  label="Expires"
+                  value={expiry.label}
+                />
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <PaginationControls
+        expires={expires}
         page={page}
+        search={search}
         totalPages={totalPages}
         totalLinks={totalLinks}
       />
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedShortCode
-                ? `/${selectedShortCode} performance`
-                : "Link performance"}
-            </DialogTitle>
-            <DialogDescription>
-              Source, campaign, device, location, and referrer data for recent
-              clicks.
-            </DialogDescription>
-          </DialogHeader>
-
-          {isPending && !detailResult ? (
-            <div className="flex items-center gap-3 rounded-2xl bg-surface-muted p-4 text-ui-sm text-content-secondary">
-              <Loader2 className="size-4 animate-spin" />
-              Loading link details...
-            </div>
-          ) : null}
-
-          {detailResult?.status === "error" ? (
-            <div className="rounded-2xl bg-danger-soft p-4 text-ui-sm text-danger">
-              {detailResult.message}
-            </div>
-          ) : null}
-
-          {detailResult?.status === "success" ? (
-            <LinkDetailContent detail={detailResult.data} />
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
 
+function MetaItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="inline-flex min-w-0 items-center gap-2">
+      <span className="text-content-muted">{icon}</span>
+      <span className="font-ui-semibold text-content-heading">{label}</span>
+      <span className="truncate">{value}</span>
+    </div>
+  );
+}
+
 function PaginationControls({
+  expires,
   page,
+  search,
   totalPages,
   totalLinks,
 }: {
+  expires: LinkExpiryFilter;
   page: number;
+  search: string;
   totalPages: number;
   totalLinks: number;
 }) {
@@ -191,14 +248,14 @@ function PaginationControls({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              href={`/analytics?page=${previousPage}`}
+              href={buildAnalyticsPageHref(previousPage, search, expires)}
               className={page <= 1 ? "pointer-events-none opacity-50" : ""}
               aria-disabled={page <= 1}
             />
           </PaginationItem>
           <PaginationItem>
             <PaginationNext
-              href={`/analytics?page=${nextPage}`}
+              href={buildAnalyticsPageHref(nextPage, search, expires)}
               className={
                 page >= totalPages ? "pointer-events-none opacity-50" : ""
               }
@@ -211,93 +268,48 @@ function PaginationControls({
   );
 }
 
-function LinkDetailContent({ detail }: { detail: LinkAnalyticsDetail }) {
-  return (
-    <div className="min-h-0 space-y-5 overflow-y-auto pr-1">
-      <div className="grid gap-3 md:grid-cols-3">
-        <DetailStat label="Short code" value={detail.shortCode} />
-        <DetailStat label="Created" value={formatDateTime(detail.createdAt)} />
-        <DetailStat
-          label="Total clicks"
-          value={formatNumber(detail.totalClicks)}
-        />
-      </div>
+function buildAnalyticsPageHref(
+  page: number,
+  search: string,
+  expires: LinkExpiryFilter,
+): string {
+  const params = new URLSearchParams();
 
-      <div className="rounded-2xl bg-surface-muted p-4">
-        <p className="text-ui-xs font-ui-semibold uppercase tracking-[0.18em] text-content-muted">
-          Destination
-        </p>
-        <p className="mt-2 break-all text-ui-sm text-content-heading">
-          {detail.destinationUrl}
-        </p>
-      </div>
+  if (page > 1) {
+    params.set("page", String(page));
+  }
 
-      {detail.clicks.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border-strong p-5 text-ui-sm text-content-secondary">
-          No click events have been recorded for this link yet.
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-border-soft">
-          <div className="border-b border-border-soft bg-surface-muted px-4 py-3 text-ui-sm font-ui-semibold text-content-heading">
-            Recent click events
-          </div>
-          <div className="max-h-80 divide-y divide-border-soft overflow-y-auto">
-            {detail.clicks.map((click) => (
-              <div
-                key={`${click.clickedAt}-${click.ipAddress ?? "unknown"}`}
-                className="grid gap-3 p-4 text-ui-sm md:grid-cols-[1.1fr_1fr_1fr]"
-              >
-                <div>
-                  <p className="font-ui-semibold text-content-heading">
-                    {formatDateTime(click.clickedAt)}
-                  </p>
-                  <p className="mt-1 text-content-muted">
-                    {click.referrerDomain ?? "Direct or unknown source"}
-                  </p>
-                </div>
-                <div className="text-content-secondary">
-                  <p>
-                    {formatNullable(click.utmSource)} /{" "}
-                    {formatNullable(click.utmMedium)}
-                  </p>
-                  <p className="mt-1">
-                    {formatNullable(click.utmCampaign)}
-                  </p>
-                </div>
-                <div className="text-content-secondary">
-                  <p>
-                    {formatNullable(click.browser)} on{" "}
-                    {formatNullable(click.os)}
-                  </p>
-                  <p className="mt-1">
-                    {formatNullable(click.city)},{" "}
-                    {formatNullable(click.country)}
-                  </p>
-                  <p className="mt-1 flex items-center gap-2 text-content-muted">
-                    <MousePointerClick className="size-3.5" />
-                    {formatNullable(click.ipAddress)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  if (search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  if (expires !== "all") {
+    params.set("expires", expires);
+  }
+
+  const queryString = params.toString();
+
+  return queryString ? `/analytics?${queryString}` : "/analytics";
 }
 
-function DetailStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-surface-muted p-4">
-      <p className="text-ui-xs font-ui-semibold uppercase tracking-[0.18em] text-content-muted">
-        {label}
-      </p>
-      <p className="mt-2 text-ui-base font-ui-semibold text-content-heading">
-        {value}
-      </p>
-    </div>
-  );
+function getExpiryDisplay(expiresAt: string | null): { label: string } {
+  if (!expiresAt) {
+    return {
+      label: "Never expires",
+    };
+  }
+
+  const expiryDate = new Date(expiresAt);
+
+  if (expiryDate.getTime() <= Date.now()) {
+    return {
+      label: `Expired ${formatDateTime(expiresAt)}`,
+    };
+  }
+
+  return {
+    label: `Expires ${formatDateTime(expiresAt)}`,
+  };
 }
 
 function formatDateTime(value: string): string {
@@ -311,6 +323,11 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function formatNullable(value: string | null): string {
-  return value?.trim() || "Unknown";
+function getDestinationLabel(destinationUrl: string): string {
+  try {
+    const url = new URL(destinationUrl);
+    return url.hostname.replace(/^www\./, "");
+  } catch {
+    return destinationUrl;
+  }
 }
