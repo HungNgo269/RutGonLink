@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { startTransition, useActionState, useEffect } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { CopyShortLinkButton } from "@/components/copy-short-link-button";
 import { initialShortenUrlFormState } from "@/features/shortenUrl/actions/submit-shorten-url.state";
 import { submitShortenUrl } from "@/features/shortenUrl/actions/submit-shorten-url";
 import type { ShortenUrlFormValues } from "@/features/shortenUrl/schemas/shorten-url.schema";
@@ -14,6 +16,7 @@ export function ShortenUrlForm() {
     initialShortenUrlFormState,
   );
   const safeState = state ?? initialShortenUrlFormState;
+  const lastCreatedShortLinkRef = useRef<string | null>(null);
 
   const {
     register,
@@ -30,6 +33,13 @@ export function ShortenUrlForm() {
   useEffect(() => {
     if (safeState.status === "success" && safeState.data) {
       reset({ url: safeState.data.originalUrl });
+
+      if (lastCreatedShortLinkRef.current !== safeState.data.shortenedUrl) {
+        lastCreatedShortLinkRef.current = safeState.data.shortenedUrl;
+        toast.success("Short link created", {
+          description: safeState.data.shortenedUrl,
+        });
+      }
     }
   }, [reset, safeState.data, safeState.status]);
 
@@ -96,15 +106,11 @@ export function ShortenUrlForm() {
               <dt className="font-ui-semibold text-content-strong">
                 Short link
               </dt>
-              <dd className="mt-1 break-all">
-                <a
-                  className="text-accent underline underline-offset-4"
-                  href={safeState.data.shortenedUrl}
-                  target="_blank"
-                  rel="noopener"
-                >
+              <dd className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                <span className="break-all text-accent">
                   {safeState.data.shortenedUrl}
-                </a>
+                </span>
+                <CopyShortLinkButton value={safeState.data.shortenedUrl} />
               </dd>
             </div>
           </dl>

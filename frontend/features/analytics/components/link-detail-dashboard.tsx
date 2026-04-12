@@ -9,7 +9,7 @@ import {
   LinearScale,
   Tooltip,
 } from "chart.js";
-import { CalendarDays, ExternalLink, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { Bar, Doughnut } from "react-chartjs-2";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CopyShortLinkButton } from "@/components/copy-short-link-button";
 import type { LinkAnalyticsDetail } from "@/features/analytics/schemas/link-analytics-detail.schema";
 import { MetaItem } from "./analytics-links-table";
 
@@ -62,16 +63,11 @@ export function LinkDetailDashboard({
                 </h3>
                 <Badge variant="secondary">Active</Badge>
               </div>
-              <div>
-                <a
-                  href={shortenedUrl}
-                  target="_blank"
-                  rel="noopener"
-                  className="mt-2 inline-flex max-w-full items-center gap-2 break-all text-ui-sm font-ui-semibold text-accent hover:text-accent-strong"
-                >
-                  <ExternalLink className="size-4 shrink-0" />
+              <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+                <span className="break-all text-ui-sm font-ui-semibold text-accent">
                   {shortenedUrl}
-                </a>
+                </span>
+                <CopyShortLinkButton value={shortenedUrl} />
               </div>
               <div>
                 <a
@@ -148,28 +144,6 @@ export function LinkDetailDashboard({
           items={detail.referrers}
         />
       </div>
-    </div>
-  );
-}
-
-function SummaryStat({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-lg border border-border-soft bg-surface-muted p-3">
-      <p className="flex items-center gap-2 text-ui-xs font-ui-semibold uppercase tracking-[0.16em] text-content-muted">
-        {icon}
-        {label}
-      </p>
-      <p className="mt-2 truncate text-ui-sm font-ui-semibold text-content-heading">
-        {value}
-      </p>
     </div>
   );
 }

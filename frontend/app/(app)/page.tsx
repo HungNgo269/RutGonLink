@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, CheckCircle2, Link2, Lock } from "lucide-react";
+import { ArrowRight, BarChart3, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShortenUrlForm } from "@/features/shortenUrl/components/ShortenUrlForm";
 

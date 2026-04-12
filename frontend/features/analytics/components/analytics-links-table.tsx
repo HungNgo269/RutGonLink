@@ -6,12 +6,10 @@ import {
   BarChart3,
   CalendarDays,
   Clock3,
-  ExternalLink,
-  Tag,
   Trash2,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CopyShortLinkButton } from "@/components/copy-short-link-button";
 import {
   Pagination,
   PaginationContent,
@@ -102,28 +100,28 @@ export function AnalyticsLinksTable({
               className="group rounded-lg border border-border-soft bg-surface p-5 shadow-app-panel transition-colors hover:border-accent/40 hover:bg-surface-cool"
             >
               <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                <button
-                  type="button"
-                  className="min-w-0 flex-1 text-left"
-                  onClick={() => openDetails(link.shortCode)}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-                      <ExternalLink className="size-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="break-all text-ui-lg font-ui-semibold text-content-heading group-hover:text-accent">
+                <div className="flex min-w-0 flex-1 items-start">
+                  <div className="min-w-0">
+                    <button
+                      type="button"
+                      className="text-left"
+                      onClick={() => openDetails(link.shortCode)}
+                    >
+                      <h3 className="break-all text-ui-lg font-ui-semibold text-content-heading hover:text-accent">
                         {destinationLabel}
                       </h3>
-                      <p className="mt-1 break-all text-ui-sm font-ui-semibold text-accent">
+                    </button>
+                    <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+                      <p className="break-all text-ui-sm font-ui-semibold text-accent">
                         {shortenedUrl}
                       </p>
-                      <p className="mt-2 max-w-4xl truncate text-ui-sm text-content-secondary">
-                        {link.destinationUrl}
-                      </p>
+                      <CopyShortLinkButton value={shortenedUrl} compact />
                     </div>
+                    <p className="mt-2 max-w-4xl truncate text-ui-sm text-content-secondary">
+                      {link.destinationUrl}
+                    </p>
                   </div>
-                </button>
+                </div>
 
                 <div className="flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
                   <div className="rounded-lg bg-surface-muted px-4 py-3 text-right">
