@@ -5,7 +5,7 @@ export default function RegisterPage() {
   return (
     <AuthPageShell
       title="Create your RutGonLink account"
-      description="Save every short link, organize campaigns, and keep analytics tied to your profile."
+      description="Save every short link and keep analytics tied to your profile."
       switchLabel="Already have an account?"
       switchHref="/login"
       switchText="Sign in"

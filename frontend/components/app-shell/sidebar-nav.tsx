@@ -29,7 +29,7 @@ function NavLink({ item }: { item: AppNavItem }) {
   return (
     <Link
       href={item.href}
-      className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-ui-sm font-ui-semibold ${
+      className={`group flex items-center gap-3 rounded-lg px-4 py-3 text-ui-sm font-ui-semibold ${
         isActive
           ? "bg-sidebar-active text-sidebar-active-foreground shadow-accent-outline"
           : "text-content-secondary hover:bg-surface-hover hover:text-content-heading"
@@ -45,8 +45,8 @@ export function SidebarNav() {
   return (
     <aside className="flex h-screen flex-col border-r border-border-soft bg-sidebar-surface">
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="flex size-11 items-center justify-center rounded-2xl border border-brand-mark-border bg-brand-mark-surface text-ui-xl font-ui-bold text-brand-mark-foreground">
-          b
+        <div className="flex size-11 items-center justify-center rounded-lg border border-brand-mark-border bg-brand-mark-surface font-mono text-ui-xl font-ui-bold text-brand-mark-foreground">
+          R
         </div>
         <div>
           <p className="text-ui-sm font-ui-semibold text-content-heading">RutGonLink</p>
@@ -80,7 +80,7 @@ export function MobileNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-ui-sm font-ui-semibold ${
+            className={`inline-flex shrink-0 items-center gap-2 rounded-lg border px-4 py-2 text-ui-sm font-ui-semibold ${
               isActive
                 ? "border-accent bg-accent-soft text-accent"
                 : "border-border-soft bg-surface text-content-secondary"

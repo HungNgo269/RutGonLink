@@ -51,7 +51,7 @@ export function LoginForm() {
           className="w-full rounded-lg border border-border-strong bg-surface px-4 py-3 text-ui-base text-content-strong outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring"
           {...register("email")}
         />
-        <p className="min-h-5 text-ui-sm text-danger">
+        <p className="min-h-5 text-ui-sm text-danger" role="alert">
           {errors.email?.message ?? safeState.fieldErrors.email ?? ""}
         </p>
       </div>
@@ -70,12 +70,12 @@ export function LoginForm() {
           className="w-full rounded-lg border border-border-strong bg-surface px-4 py-3 text-ui-base text-content-strong outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring"
           {...register("password")}
         />
-        <p className="min-h-5 text-ui-sm text-danger">
+        <p className="min-h-5 text-ui-sm text-danger" role="alert">
           {errors.password?.message ?? safeState.fieldErrors.password ?? ""}
         </p>
       </div>
 
-      <p className="min-h-5 text-ui-sm text-danger">
+      <p className="min-h-5 text-ui-sm text-danger" role="alert">
         {hasClientErrors ? "" : safeState.message}
       </p>
 

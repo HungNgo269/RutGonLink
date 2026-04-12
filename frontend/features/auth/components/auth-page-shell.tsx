@@ -18,14 +18,17 @@ export function AuthPageShell({
   children,
 }: AuthPageShellProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
-      <section className="grid w-full max-w-5xl overflow-hidden rounded-lg border border-border-soft bg-surface shadow-app-soft lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1fr)]">
-        <div className="bg-surface-muted px-6 py-8 md:px-10 md:py-12">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-analytics px-4 py-10 text-foreground">
+      <section className="grid w-full max-w-5xl overflow-hidden rounded-lg border border-border-soft bg-surface shadow-app-soft lg:grid-cols-[minmax(0,0.85fr)_minmax(360px,1fr)]">
+        <div className="border-b border-border-soft bg-surface-muted px-6 py-8 md:px-10 md:py-12 lg:border-b-0 lg:border-r">
           <Link
             href="/"
-            className="inline-flex text-ui-sm font-ui-semibold text-accent"
+            className="inline-flex items-center gap-3 text-ui-sm font-ui-semibold text-content-heading"
           >
-            RutGonLink
+            <span className="flex size-10 items-center justify-center rounded-lg border border-brand-mark-border bg-brand-mark-surface font-mono text-ui-lg font-ui-bold text-brand-mark-foreground">
+              R
+            </span>
+            <span>RutGonLink</span>
           </Link>
           <h1 className="mt-10 text-heading-md font-ui-semibold tracking-tight text-content-heading md:text-heading-lg">
             {title}
@@ -33,6 +36,14 @@ export function AuthPageShell({
           <p className="mt-4 max-w-sm text-ui-sm leading-7 text-content-secondary">
             {description}
           </p>
+          <div className="mt-8 grid gap-3 text-ui-sm text-content-primary">
+            <p className="rounded-lg border border-border-soft bg-surface px-4 py-3">
+              Shorten links and track visits in one workspace.
+            </p>
+            <p className="rounded-lg border border-border-soft bg-surface px-4 py-3">
+              Built for link history, click totals, and reporting.
+            </p>
+          </div>
         </div>
 
         <div className="px-6 py-8 md:px-10 md:py-12">

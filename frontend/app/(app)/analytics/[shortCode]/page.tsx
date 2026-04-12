@@ -24,8 +24,8 @@ export default async function AnalyticsLinkDetailPage({
     return (
       <section className="space-y-5">
         <BackButton />
-        <div className="rounded-[30px] border border-border-soft bg-surface p-6 shadow-app-soft md:p-8">
-          <div className="inline-flex rounded-full bg-accent-soft p-3 text-accent">
+        <div className="rounded-lg border border-border-soft bg-surface p-6 shadow-app-soft md:p-8">
+          <div className="inline-flex rounded-lg bg-accent-soft p-3 text-accent">
             <BarChart3 className="size-5" />
           </div>
           <h1 className="mt-5 text-heading-md font-ui-semibold tracking-tight text-content-heading">
@@ -57,7 +57,7 @@ export default async function AnalyticsLinkDetailPage({
 
 function BackButton() {
   return (
-    <Button asChild variant="ghost" className="rounded-xl px-0 text-content-heading">
+    <Button asChild variant="ghost" className="px-0 text-content-heading">
       <Link href="/analytics">
         <ArrowLeft className="size-4" />
         Back to list

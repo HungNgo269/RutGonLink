@@ -24,9 +24,9 @@ export function AuthMenu({ user }: { user: CurrentUser }) {
         <Button
           type="button"
           variant="ghost"
-          className="h-auto rounded-full border border-transparent bg-surface px-1 py-1 hover:border-border-soft hover:bg-surface"
+          className="h-auto rounded-lg border border-transparent bg-surface px-1 py-1 hover:border-border-soft hover:bg-surface"
         >
-          <span className="flex size-10 items-center justify-center rounded-full bg-content-strong text-ui-sm font-ui-semibold text-content-inverted">
+          <span className="flex size-10 items-center justify-center rounded-lg bg-content-strong text-ui-sm font-ui-semibold text-content-inverted">
             {initial}
           </span>
           <span className="hidden text-left md:block">

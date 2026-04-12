@@ -30,7 +30,7 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 min-w-56 rounded-3xl border border-border-soft bg-surface p-2 text-content-heading shadow-app-soft",
+          "z-50 min-w-56 rounded-lg border border-border-soft bg-surface p-2 text-content-heading shadow-app-soft",
           className,
         )}
         {...props}
@@ -66,7 +66,7 @@ function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "relative flex cursor-default select-none items-center rounded-lg px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         inset && "pl-8",
         className,
       )}
@@ -98,7 +98,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "relative flex cursor-default select-none items-center rounded-lg py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         className,
       )}
       checked={checked}
@@ -123,7 +123,7 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        "relative flex cursor-default select-none items-center rounded-2xl py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "relative flex cursor-default select-none items-center rounded-lg py-2.5 pl-8 pr-3 text-ui-sm font-ui-medium text-content-primary outline-none transition-colors hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         className,
       )}
       {...props}
@@ -150,7 +150,7 @@ function DropdownMenuSubTrigger({
     <DropdownMenuPrimitive.SubTrigger
       data-slot="dropdown-menu-sub-trigger"
       className={cn(
-        "flex cursor-default select-none items-center rounded-2xl px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
+        "flex cursor-default select-none items-center rounded-lg px-3 py-2.5 text-ui-sm font-ui-medium text-content-primary outline-none hover:bg-surface-hover hover:text-content-heading focus:bg-surface-hover focus:text-content-heading",
         inset && "pl-8",
         className,
       )}
@@ -170,7 +170,7 @@ function DropdownMenuSubContent({
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        "z-50 min-w-44 rounded-3xl border border-border-soft bg-surface p-2 text-content-heading shadow-app-soft",
+        "z-50 min-w-44 rounded-lg border border-border-soft bg-surface p-2 text-content-heading shadow-app-soft",
         className,
       )}
       {...props}

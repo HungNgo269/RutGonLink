@@ -79,7 +79,7 @@ export function AnalyticsLinksTable({
   return (
     <>
       {deleteError ? (
-        <div className="mt-5 rounded-2xl bg-danger-soft p-4 text-ui-sm text-danger">
+        <div className="mt-5 rounded-lg bg-danger-soft p-4 text-ui-sm text-danger" role="alert">
           {deleteError}
         </div>
       ) : null}
@@ -105,7 +105,7 @@ export function AnalyticsLinksTable({
                   onClick={() => openDetails(link.shortCode)}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
                       <ExternalLink className="size-5" />
                     </div>
                     <div className="min-w-0">
@@ -123,7 +123,7 @@ export function AnalyticsLinksTable({
                 </button>
 
                 <div className="flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
-                  <div className="rounded-2xl bg-surface-muted px-4 py-3 text-right">
+                  <div className="rounded-lg bg-surface-muted px-4 py-3 text-right">
                     <p className="text-ui-xs font-ui-semibold uppercase tracking-[0.16em] text-content-muted">
                       Clicks
                     </p>
@@ -134,7 +134,6 @@ export function AnalyticsLinksTable({
                   <Button
                     type="button"
                     variant="destructive"
-                    className="rounded-lg"
                     disabled={isPending && deletingShortCode === link.shortCode}
                     onClick={() => deleteLink(link.shortCode)}
                   >

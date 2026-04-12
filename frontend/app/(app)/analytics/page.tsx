@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnalyticsLinkFilters } from "@/features/analytics/components/analytics-link-filters";
 import { AnalyticsLinksTable } from "@/features/analytics/components/analytics-links-table";
@@ -28,11 +28,8 @@ export default async function AnalyticsPage({
 
   if (analyticsResult.status === "error") {
     return (
-      <section className="rounded-[30px] border border-border-soft bg-surface p-6 shadow-app-soft md:p-8">
-        <div className="inline-flex rounded-full bg-accent-soft p-3 text-accent">
-          <BarChart3 className="size-5" />
-        </div>
-        <h1 className="mt-5 text-heading-md font-ui-semibold tracking-tight text-content-heading">
+      <section className="rounded-lg border border-border-soft bg-surface p-6 shadow-app-soft md:p-8">
+        <h1 className="text-heading-md font-ui-semibold tracking-tight text-content-heading">
           Analytics
         </h1>
         <p className="mt-3 max-w-2xl text-ui-sm leading-7 text-content-secondary">
@@ -42,8 +39,12 @@ export default async function AnalyticsPage({
     );
   }
 
-  const { links, page: currentPage, totalLinks, totalPages } =
-    analyticsResult.data;
+  const {
+    links,
+    page: currentPage,
+    totalLinks,
+    totalPages,
+  } = analyticsResult.data;
   const shortenedUrlBaseUrl = getShortenedUrlBaseUrl();
 
   return (
@@ -60,7 +61,7 @@ export default async function AnalyticsPage({
           </p>
         </div>
 
-        <Button asChild className="rounded-lg">
+        <Button asChild>
           <Link href="/">
             <Plus className="size-4" />
             Create link

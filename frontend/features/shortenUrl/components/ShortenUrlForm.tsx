@@ -57,10 +57,10 @@ export function ShortenUrlForm() {
               id="url"
               type="url"
               placeholder="https://example.com/my-long-url"
-              className="w-full rounded-2xl border border-border-strong bg-surface px-4 py-3.5 text-ui-base text-content-strong outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring"
+              className="w-full rounded-lg border border-border-strong bg-surface px-4 py-3.5 text-ui-base text-content-strong outline-none focus:border-accent focus:ring-4 focus:ring-accent-ring"
               {...register("url")}
             />
-            <p className="min-h-5 text-ui-sm text-danger">
+            <p className="min-h-5 text-ui-sm text-danger" role="alert">
               {errors.url?.message ?? ""}
             </p>
           </div>
@@ -68,33 +68,26 @@ export function ShortenUrlForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-accent px-6 text-ui-sm font-ui-semibold text-content-inverted shadow-app-panel hover:bg-accent-strong disabled:cursor-not-allowed disabled:bg-disabled xl:min-w-52"
+            className="inline-flex min-h-14 items-center justify-center rounded-lg bg-cta px-6 text-ui-sm font-ui-semibold text-content-heading shadow-app-panel hover:bg-cta-strong hover:text-content-inverted disabled:cursor-not-allowed disabled:bg-disabled disabled:text-content-inverted xl:min-w-52"
           >
             {isPending ? "Creating short link..." : "Create your short link"}
           </button>
         </div>
-
-        <label className="flex items-center gap-3 text-ui-sm text-content-primary">
-          <input
-            type="checkbox"
-            className="size-4 rounded border border-border-strong accent-accent"
-          />
-          Also create a QR code for this link
-        </label>
       </form>
 
-      <div className="rounded-2xl bg-teal-soft px-4 py-4 text-ui-sm text-teal">
+      <div className="rounded-lg bg-teal-soft px-4 py-4 text-ui-sm text-teal">
         <p
           className={
             safeState.status === "error" ? "text-danger" : "text-teal"
           }
+          role={safeState.status === "error" ? "alert" : undefined}
         >
           {safeState.message ??
-            "Get custom links, branded domains, and faster workflows. Register now."}
+            "Create a short link, save it to your account, and review click analytics later."}
         </p>
 
         {safeState.data ? (
-          <dl className="mt-4 grid gap-3 rounded-2xl bg-surface/90 p-4 text-ui-sm text-content-primary sm:grid-cols-2">
+          <dl className="mt-4 grid gap-3 rounded-lg bg-surface/90 p-4 text-ui-sm text-content-primary sm:grid-cols-2">
             <div>
               <dt className="font-ui-semibold text-content-strong">Original URL</dt>
               <dd className="mt-1 break-all">{safeState.data.originalUrl}</dd>

@@ -5,7 +5,7 @@ export default function LoginPage() {
   return (
     <AuthPageShell
       title="Sign in to your workspace"
-      description="Manage short links, QR codes, and click analytics from one account."
+      description="Manage short links and click analytics from one account."
       switchLabel="Need an account?"
       switchHref="/register"
       switchText="Create one"

@@ -52,10 +52,10 @@ export function LinkDetailDashboard({
 
   return (
     <div className="flex min-h-0 flex-col gap-4">
-      <Card className="gap-4 rounded-2xl p-5">
+      <Card className="gap-4 p-5">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="flex min-w-0 gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border-soft bg-surface-muted text-accent">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-border-soft bg-surface-muted text-accent">
               <Link2 className="size-5" />
             </div>
             <div className="min-w-0">
@@ -168,7 +168,7 @@ function SummaryStat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border-soft bg-surface-muted p-3">
+    <div className="rounded-lg border border-border-soft bg-surface-muted p-3">
       <p className="flex items-center gap-2 text-ui-xs font-ui-semibold uppercase tracking-[0.16em] text-content-muted">
         {icon}
         {label}
@@ -196,8 +196,8 @@ function LocationsCard({
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </div>
-        <div className="hidden rounded-full bg-surface-muted p-1 text-ui-xs font-ui-semibold text-content-muted sm:flex">
-          <span className="rounded-full bg-content-strong px-3 py-1.5 text-content-inverted">
+        <div className="hidden rounded-lg bg-surface-muted p-1 text-ui-xs font-ui-semibold text-content-muted sm:flex">
+          <span className="rounded-lg bg-content-strong px-3 py-1.5 text-content-inverted">
             Locations
           </span>
         </div>
@@ -302,7 +302,7 @@ function BreakdownList({ items }: { items: BreakdownItem[] }) {
       {items.map((item, index) => (
         <div
           key={`${item.label}-${index}`}
-          className="flex items-center justify-between gap-3 rounded-xl bg-surface-muted px-3 py-2"
+          className="flex items-center justify-between gap-3 rounded-lg bg-surface-muted px-3 py-2"
         >
           <div className="flex min-w-0 items-center gap-2">
             <span
@@ -324,7 +324,7 @@ function BreakdownList({ items }: { items: BreakdownItem[] }) {
 
 function EmptyMetric() {
   return (
-    <div className="rounded-xl border border-dashed border-border-strong bg-surface-muted p-6 text-ui-sm text-content-secondary">
+    <div className="rounded-lg border border-dashed border-border-strong bg-surface-muted p-6 text-ui-sm text-content-secondary">
       No click data recorded yet.
     </div>
   );
