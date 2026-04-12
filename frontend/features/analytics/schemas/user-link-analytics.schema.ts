@@ -13,6 +13,9 @@ export const userLinkAnalyticsResponseSchema = z.object({
   links: z.array(userLinkAnalyticsItemSchema),
   totalLinks: z.number().int().nonnegative(),
   totalClicks: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  totalPages: z.number().int().nonnegative(),
 });
 
 export type UserLinkAnalyticsResponse = z.infer<

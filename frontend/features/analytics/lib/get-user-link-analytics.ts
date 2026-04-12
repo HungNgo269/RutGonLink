@@ -4,9 +4,11 @@ import {
 } from "@/features/analytics/schemas/user-link-analytics.schema";
 import { apiFetch } from "@/lib/api";
 
-export async function getUserLinkAnalytics(): Promise<AnalyticsResult> {
+export async function getUserLinkAnalytics(
+  page = 1,
+): Promise<AnalyticsResult> {
   try {
-    const response = await apiFetch("/analytics/links");
+    const response = await apiFetch(`/analytics/links?page=${page}&limit=10`);
 
     if (response.status === 401) {
       return {

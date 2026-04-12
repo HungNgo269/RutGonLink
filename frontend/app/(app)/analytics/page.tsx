@@ -1,8 +1,16 @@
 import { BarChart3, ExternalLink, Link2, MousePointerClick } from "lucide-react";
+import { AnalyticsLinksTable } from "@/features/analytics/components/analytics-links-table";
 import { getUserLinkAnalytics } from "@/features/analytics/lib/get-user-link-analytics";
 
-export default async function AnalyticsPage() {
-  const analyticsResult = await getUserLinkAnalytics();
+type AnalyticsPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AnalyticsPage({
+  searchParams,
+}: AnalyticsPageProps) {
+  const page = parsePage((await searchParams).page);
+  const analyticsResult = await getUserLinkAnalytics(page);
 
   if (analyticsResult.status === "error") {
     return (
@@ -20,7 +28,13 @@ export default async function AnalyticsPage() {
     );
   }
 
-  const { links, totalClicks, totalLinks } = analyticsResult.data;
+  const {
+    links,
+    page: currentPage,
+    totalClicks,
+    totalLinks,
+    totalPages,
+  } = analyticsResult.data;
   const topLink = links.reduce<(typeof links)[number] | null>(
     (currentTopLink, link) =>
       currentTopLink === null || link.totalClicks > currentTopLink.totalClicks
@@ -61,7 +75,7 @@ export default async function AnalyticsPage() {
             />
             <MetricCard
               icon={<ExternalLink className="size-4" />}
-              label="Top short code"
+              label="Top on page"
               value={topLink?.shortCode ?? "None yet"}
             />
           </div>
@@ -93,55 +107,12 @@ export default async function AnalyticsPage() {
             activity.
           </div>
         ) : (
-          <div className="mt-8 overflow-hidden rounded-[28px] border border-border-soft">
-            <div className="app-scrollbar overflow-x-auto">
-              <table className="min-w-full divide-y divide-border-soft">
-                <thead className="bg-surface-muted text-left text-ui-xs font-ui-semibold uppercase tracking-[0.18em] text-content-muted">
-                  <tr>
-                    <th className="px-5 py-4">Source URL</th>
-                    <th className="px-5 py-4">Short code</th>
-                    <th className="px-5 py-4">Created</th>
-                    <th className="px-5 py-4">Clicks</th>
-                    <th className="px-5 py-4">Last click</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-soft bg-surface">
-                  {links.map((link) => (
-                    <tr key={link.shortCode} className="align-top">
-                      <td className="px-5 py-5">
-                        <div className="max-w-[32rem]">
-                          <p className="truncate font-ui-semibold text-content-heading">
-                            {link.destinationUrl}
-                          </p>
-                          <p className="mt-2 text-ui-xs uppercase tracking-[0.16em] text-content-muted">
-                            Path {link.shortenedUrlPath}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-5 py-5">
-                        <span className="inline-flex rounded-full bg-accent-soft px-3 py-2 text-ui-sm font-ui-semibold text-accent">
-                          {link.shortCode}
-                        </span>
-                      </td>
-                      <td className="px-5 py-5 text-ui-sm text-content-secondary">
-                        {formatDateTime(link.createdAt)}
-                      </td>
-                      <td className="px-5 py-5">
-                        <span className="text-ui-lg font-ui-semibold text-content-heading">
-                          {formatNumber(link.totalClicks)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-5 text-ui-sm text-content-secondary">
-                        {link.lastClickedAt
-                          ? formatDateTime(link.lastClickedAt)
-                          : "No clicks yet"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <AnalyticsLinksTable
+            links={links}
+            page={currentPage}
+            totalLinks={totalLinks}
+            totalPages={totalPages}
+          />
         )}
       </div>
     </section>
@@ -172,13 +143,17 @@ function MetricCard({
   );
 }
 
-function formatDateTime(value: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
 function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function parsePage(value: string | string[] | undefined): number {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const page = Number(rawValue);
+
+  if (!Number.isInteger(page) || page < 1) {
+    return 1;
+  }
+
+  return page;
 }
